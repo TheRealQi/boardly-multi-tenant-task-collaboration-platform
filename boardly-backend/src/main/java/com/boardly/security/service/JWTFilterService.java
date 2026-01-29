@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import io.jsonwebtoken.*;
 
 import javax.crypto.SecretKey;
+import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,10 +21,10 @@ public class JWTFilterService {
     private String jwtSecret;
 
     @Value("${jwt.expiration}")
-    private Long expirationTime;
+    private Long accessTokenExpirationTime;
 
-    @Value("${jwt.refreshExpiration}")
-    private Long refreshExpirationTime;
+    private static final SecureRandom secureRandom = new SecureRandom();
+
 
     private SecretKey secretKey;
 
@@ -41,11 +43,12 @@ public class JWTFilterService {
     }
 
     public String generateRefreshToken(UUID userId) {
-        return generateToken(userId, refreshExpirationTime);
-    }
+        byte[] token = new byte[32]; // 32 bytes = 256 bits
+        secureRandom.nextBytes(token);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(token);    }
 
-    public long getExpirationFromNow() {
-        return Instant.now().plusMillis(expirationTime).getEpochSecond();
+    public long getAccessTokenExpirationFromNow() {
+        return Instant.now().plusMillis(accessTokenExpirationTime).getEpochSecond();
     }
 
     public Optional<UUID> validateToken(String token) {

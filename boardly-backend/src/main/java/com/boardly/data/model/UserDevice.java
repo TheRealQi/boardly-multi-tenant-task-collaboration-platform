@@ -1,8 +1,8 @@
 package com.boardly.data.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
 import java.time.Instant;
 
 @Entity
@@ -17,11 +17,17 @@ public class UserDevice extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @NotNull
     private String deviceDetails;
 
+    @NotNull
     private String ipAddress;
 
-    private Instant lastLoggedIn;
+    private Instant lastLoggedInOn;
 
     private String refreshToken;
+
+    private Instant refreshTokenExpiresAt;
+
+    private Instant refreshedOn;
 }

@@ -25,14 +25,20 @@ public class User extends BaseEntity {
     @Column(unique = true, nullable = false, updatable = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = true)
     private String passwordHash;
 
-    @Column(nullable = false, updatable = true)
+    @Column(updatable = true)
     private String firstName;
 
-    @Column(nullable = false, updatable = true)
+    @Column(updatable = true)
     private String lastName;
+
+    @Column(nullable = false, updatable = true)
+    private String profilePictureUrl;
+
+    @Column(nullable = false, updatable = true)
+    private boolean emailVerified = false;
 
     @Column
     private Instant lastLogin = null;
