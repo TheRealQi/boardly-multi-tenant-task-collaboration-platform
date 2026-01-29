@@ -1,0 +1,35 @@
+package com.boardly.security.service;
+
+import com.boardly.data.model.User;
+import com.boardly.data.repository.UserRepository;
+import com.boardly.security.model.AppUserDetails;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+    private final UserRepository userRepository;
+
+    @Autowired
+    public CustomUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
+                .orElseThrow();
+        return new AppUserDetails(user);
+    }
+
+    public UserDetails loadUserById(UUID userId) throws UsernameNotFoundException {
+        User user = userRepository.findByPublicId(userId)
+                .orElseThrow();
+        return new AppUserDetails(user);
+    }
+}

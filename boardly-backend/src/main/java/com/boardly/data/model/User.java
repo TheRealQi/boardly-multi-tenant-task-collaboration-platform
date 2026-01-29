@@ -1,12 +1,7 @@
 package com.boardly.data.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -20,6 +15,7 @@ import java.util.UUID;
 @Getter
 public class User extends BaseEntity {
     @UuidGenerator
+    @Setter(AccessLevel.NONE)
     @Column(unique = true, nullable = false, updatable = false)
     private UUID publicId;
 
@@ -40,4 +36,7 @@ public class User extends BaseEntity {
 
     @Column
     private Instant lastLogin = null;
+
+    @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL)
+    private java.util.List<UserDevice> userDevices;
 }
