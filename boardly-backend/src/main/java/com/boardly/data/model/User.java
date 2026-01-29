@@ -29,13 +29,13 @@ public class User extends BaseEntity {
     private String passwordHash;
 
     @Column(updatable = true)
-    private String firstName;
+    private String firstName = "";
 
     @Column(updatable = true)
-    private String lastName;
+    private String lastName = "";
 
     @Column(nullable = false, updatable = true)
-    private String profilePictureUrl;
+    private String profilePictureUri = "/images/profile_image_placeholder.jpg";
 
     @Column(nullable = false, updatable = true)
     private boolean emailVerified = false;
