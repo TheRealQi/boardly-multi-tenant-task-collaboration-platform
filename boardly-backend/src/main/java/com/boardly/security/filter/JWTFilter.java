@@ -26,6 +26,7 @@ public class JWTFilter extends OncePerRequestFilter {
         this.customUserService = customUserService;
     }
 
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
@@ -42,7 +43,6 @@ public class JWTFilter extends OncePerRequestFilter {
                     }
                 }
             } catch (Exception ex) {
-
             }
         }
         filterChain.doFilter(request, response);

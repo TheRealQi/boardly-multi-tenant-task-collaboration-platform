@@ -8,15 +8,20 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
+      ddl-auto: create-drop
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    com.boardly: DEBUG
 
 server:
   port: 8080
 
-
 jwt:
-  secret: mysecretkey
+  secret: Wz9a8K6N4b8qX0gF3x9Z+9G8sK5R7EoKq8l0kT6C4Q=
   expiration: 36000
+
+api:
+  base-path: /api
+  version: v1

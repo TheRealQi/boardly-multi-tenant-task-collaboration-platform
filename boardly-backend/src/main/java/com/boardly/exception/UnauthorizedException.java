@@ -1,7 +1,7 @@
 package com.boardly.exception;
 
-public class ForbiddenException extends ApiException {
-    public ForbiddenException(String message) {
+public class UnauthorizedException extends ApiException {
+    public UnauthorizedException(String message) {
         super(message);
     }
 }

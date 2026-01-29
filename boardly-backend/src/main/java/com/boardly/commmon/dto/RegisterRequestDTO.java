@@ -21,7 +21,7 @@ public class RegisterRequestDTO {
     @Size(min = 2, max = 50, message = "Are you sure about your first name?")
     private String firstName;
 
-    private String lastName;
+    private String lastName = "";
 
     @NotBlank
     @Pattern(

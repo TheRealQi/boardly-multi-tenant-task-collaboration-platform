@@ -1,6 +1,5 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.ApiSuccessResponseDTO;
 import com.boardly.commmon.dto.LoginRequestDTO;
 import com.boardly.commmon.dto.LoginResponseDTO;
 import com.boardly.commmon.dto.RegisterRequestDTO;
@@ -11,6 +10,7 @@ import com.boardly.exception.FieldsValidationException;
 import com.boardly.security.model.AppUserDetails;
 import com.boardly.security.service.JWTFilterService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,10 +49,11 @@ public class AuthenticationService {
         FieldsValidationException validation = new FieldsValidationException();
 
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Username is already taken");
+            validation.addError("email", "Email Address is already taken");
         }
+
         if (userRepository.existsByUsername(username)) {
-            throw new RuntimeException("Email is already taken");
+            validation.addError("username", "Username is already taken");
         }
 
         if (validation.hasErrors()) {
@@ -87,5 +88,21 @@ public class AuthenticationService {
         userDeviceService.captureUserDeviceInfo(user, refreshToken, servletRequest);
 
         return new LoginResponseDTO(userPublicId.toString(), accessToken, refreshToken, expiresAt);
+    }
+
+
+    public void logout(String refreshToken) {
+    }
+
+    public void verifyEmail(String verificationToken) {
+    }
+
+    public void forgotPassword(String emailOrUsername) {
+    }
+
+    public void resetPassword(String token, String newPassword) {
+    }
+
+    public void changePassword(UUID userId, String oldPassword, String newPassword) {
     }
 }
