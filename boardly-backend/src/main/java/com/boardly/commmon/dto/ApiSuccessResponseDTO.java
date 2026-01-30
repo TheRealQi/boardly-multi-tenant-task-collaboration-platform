@@ -16,7 +16,7 @@ public class ApiSuccessResponseDTO<T> {
     private String status = "success";
     private Instant timestamp;
     private String message;
-    private T body = null;
+    private T data = null;
 
     public ApiSuccessResponseDTO(int statusCode, Instant timestamp, String message) {
         this.statusCode = statusCode;
@@ -24,10 +24,10 @@ public class ApiSuccessResponseDTO<T> {
         this.message = message;
     }
 
-    public ApiSuccessResponseDTO(int statusCode, Instant timestamp, String message, T body) {
+    public ApiSuccessResponseDTO(int statusCode, Instant timestamp, String message, T data) {
         this.statusCode = statusCode;
         this.timestamp = timestamp;
         this.message = message;
-        this.body = body;
+        this.data = data;
     }
 }

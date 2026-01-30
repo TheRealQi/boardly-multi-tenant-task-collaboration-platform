@@ -20,7 +20,7 @@ public class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
-    private UUID id;
+    private UUID Id;
 
     @CreationTimestamp
     private Instant createdAt;

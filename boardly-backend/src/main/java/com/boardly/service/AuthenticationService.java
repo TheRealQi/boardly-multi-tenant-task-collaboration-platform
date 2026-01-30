@@ -1,8 +1,8 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.LoginRequestDTO;
-import com.boardly.commmon.dto.LoginResponseDTO;
-import com.boardly.commmon.dto.RegisterRequestDTO;
+import com.boardly.commmon.dto.authentication.LoginRequestDTO;
+import com.boardly.commmon.dto.authentication.LoginResponseDTO;
+import com.boardly.commmon.dto.authentication.RegisterRequestDTO;
 import com.boardly.data.model.User;
 import com.boardly.data.repository.UserDeviceRepository;
 import com.boardly.data.repository.UserRepository;
@@ -10,7 +10,6 @@ import com.boardly.exception.FieldsValidationException;
 import com.boardly.security.model.AppUserDetails;
 import com.boardly.security.service.JWTFilterService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -77,19 +76,18 @@ public class AuthenticationService {
 
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(usernameOrEmail, password));
         AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
-        UUID userPublicId = userDetails.getUserPublicId();
+        UUID userId = userDetails.getUserId();
         User user = userDetails.getUser();
 
         long expiresAt = jwtFilterService.getAccessTokenExpirationFromNow();
-        String accessToken = jwtFilterService.generateToken(userPublicId, expiresAt);
-        String refreshToken = jwtFilterService.generateRefreshToken(userPublicId);
+        String accessToken = jwtFilterService.generateToken(userId, expiresAt);
+        String refreshToken = jwtFilterService.generateRefreshToken(userId);
 
 
         userDeviceService.captureUserDeviceInfo(user, refreshToken, servletRequest);
 
-        return new LoginResponseDTO(userPublicId.toString(), accessToken, refreshToken, expiresAt);
+        return new LoginResponseDTO(userId, accessToken, refreshToken, expiresAt);
     }
-
 
     public void logout(String refreshToken) {
     }

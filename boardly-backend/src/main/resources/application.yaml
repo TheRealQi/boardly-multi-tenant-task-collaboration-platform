@@ -9,11 +9,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
     com.boardly: DEBUG
+
 
 server:
   port: 8080

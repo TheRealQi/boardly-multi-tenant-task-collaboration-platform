@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -14,11 +16,6 @@ import java.util.UUID;
 @Setter
 @Getter
 public class User extends BaseEntity {
-    @UuidGenerator
-    @Setter(AccessLevel.NONE)
-    @Column(unique = true, nullable = false, updatable = false)
-    private UUID publicId;
-
     @Column(unique = true, nullable = false, updatable = true)
     private String username;
 
@@ -45,4 +42,7 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL)
     private java.util.List<UserDevice> userDevices;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<WorkspaceMember> memberships = new HashSet<>();
 }

@@ -14,7 +14,7 @@ import java.util.Map;
 @Getter
 public class ApiErrorResponseDTO {
     private int statusCode;
-    private String error = "error";
+    private String status = "error";
     private Instant timestamp;
     private String message;
     private Map<String, String> fieldErrors;

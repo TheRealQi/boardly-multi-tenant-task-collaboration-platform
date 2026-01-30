@@ -28,10 +28,6 @@ public class AppUserDetails implements UserDetails {
         return user.getId();
     }
 
-    public UUID getUserPublicId() {
-        return user.getPublicId();
-    }
-
     public User getUser() {
         return user;
     }

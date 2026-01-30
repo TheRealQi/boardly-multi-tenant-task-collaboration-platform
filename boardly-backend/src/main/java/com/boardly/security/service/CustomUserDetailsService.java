@@ -28,7 +28,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     public UserDetails loadUserById(UUID userId) throws UsernameNotFoundException {
-        User user = userRepository.findByPublicId(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(""));
         return new AppUserDetails(user);
     }

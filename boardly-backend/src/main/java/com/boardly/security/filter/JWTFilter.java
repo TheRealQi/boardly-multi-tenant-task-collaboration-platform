@@ -31,18 +31,15 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            try {
-                String token = authorizationHeader.substring(7);
-                if (!token.isEmpty()) {
-                    UUID uuid = jwtFilterService.validateToken(token).orElseThrow();
-                    if (uuid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                        UserDetails userDetails = customUserService.loadUserById(uuid);
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, null);
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                    }
+            String token = authorizationHeader.substring(7);
+            if (!token.isEmpty()) {
+                UUID uuid = jwtFilterService.validateToken(token).orElseThrow();
+                if (uuid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = customUserService.loadUserById(uuid);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, null);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-            } catch (Exception ex) {
             }
         }
         filterChain.doFilter(request, response);

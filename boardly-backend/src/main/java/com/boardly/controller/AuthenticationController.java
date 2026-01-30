@@ -1,9 +1,9 @@
 package com.boardly.controller;
 
 import com.boardly.commmon.dto.ApiSuccessResponseDTO;
-import com.boardly.commmon.dto.LoginRequestDTO;
-import com.boardly.commmon.dto.LoginResponseDTO;
-import com.boardly.commmon.dto.RegisterRequestDTO;
+import com.boardly.commmon.dto.authentication.LoginRequestDTO;
+import com.boardly.commmon.dto.authentication.LoginResponseDTO;
+import com.boardly.commmon.dto.authentication.RegisterRequestDTO;
 import com.boardly.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -34,6 +34,6 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<ApiSuccessResponseDTO<LoginResponseDTO>> Login(@RequestBody @Valid LoginRequestDTO loginRequestDTO, HttpServletRequest httpServletRequest) {
         LoginResponseDTO loginResponseDTO = authenticationService.login(loginRequestDTO, httpServletRequest);
-        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Login successful", loginResponseDTO));
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Login successful", loginResponseDTO));
     }
 }
