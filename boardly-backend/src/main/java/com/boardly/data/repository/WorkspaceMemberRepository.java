@@ -1,7 +1,7 @@
 package com.boardly.data.repository;
 
 import com.boardly.commmon.enums.WorkspaceRole;
-import com.boardly.data.model.WorkspaceMember;
+import com.boardly.data.model.workspace.WorkspaceMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -18,4 +18,6 @@ public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember
     boolean existsByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);
 
     List<WorkspaceMember> findAllByUserId(UUID userId);
+
+    Optional<WorkspaceMember> findByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);
 }

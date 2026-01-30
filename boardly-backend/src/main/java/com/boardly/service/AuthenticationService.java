@@ -1,15 +1,18 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.authentication.LoginRequestDTO;
-import com.boardly.commmon.dto.authentication.LoginResponseDTO;
-import com.boardly.commmon.dto.authentication.RegisterRequestDTO;
-import com.boardly.data.model.User;
+import com.boardly.commmon.dto.authentication.*;
+import com.boardly.commmon.enums.TokenType;
+import com.boardly.data.model.authentication.SecureToken;
+import com.boardly.data.model.authentication.User;
+import com.boardly.data.repository.SecureTokenRepository;
 import com.boardly.data.repository.UserDeviceRepository;
 import com.boardly.data.repository.UserRepository;
 import com.boardly.exception.FieldsValidationException;
+import com.boardly.exception.ResourceNotFoundException;
 import com.boardly.security.model.AppUserDetails;
 import com.boardly.security.service.JWTFilterService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -27,17 +31,22 @@ public class AuthenticationService {
     private final JWTFilterService jwtFilterService;
     private final UserDeviceService userDeviceService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final SecureTokenRepository secureTokenRepository;
 
     @Autowired
-    public AuthenticationService(UserRepository userRepository, UserDeviceRepository userDeviceRepository, AuthenticationManager authenticationManager, JWTFilterService jwtFilterService, UserDeviceService userDeviceService) {
+    public AuthenticationService(UserRepository userRepository, UserDeviceRepository userDeviceRepository, AuthenticationManager authenticationManager, JWTFilterService jwtFilterService, UserDeviceService userDeviceService, PasswordEncoder passwordEncoder, EmailService emailService, SecureTokenRepository secureTokenRepository) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtFilterService = jwtFilterService;
         this.userDeviceService = userDeviceService;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+        this.secureTokenRepository = secureTokenRepository;
     }
 
-    public boolean register(RegisterRequestDTO registerRequestDTO) {
+    @Transactional
+    public void register(RegisterRequestDTO registerRequestDTO) {
         String username = registerRequestDTO.getUsername();
         String email = registerRequestDTO.getEmail();
         String password = registerRequestDTO.getPassword();
@@ -67,7 +76,7 @@ public class AuthenticationService {
         newUser.setLastName(lastName);
         userRepository.save(newUser);
 
-        return true;
+        sendEmailVerificationEmail(newUser);
     }
 
     public LoginResponseDTO login(LoginRequestDTO request, HttpServletRequest servletRequest) {
@@ -89,18 +98,92 @@ public class AuthenticationService {
         return new LoginResponseDTO(userId, accessToken, refreshToken, expiresAt);
     }
 
-    public void logout(String refreshToken) {
+//    public void logout(AppUserDetails appUserDetails, HttpServletRequest servletRequest) {
+//
+//    }
+
+    @Transactional
+    public void sendEmailVerificationEmail(User user) {
+        if (user.isEmailVerified()) {
+            return;
+        }
+        String token = UUID.randomUUID().toString();
+        SecureToken secureToken = new SecureToken();
+        secureToken.setToken(token);
+        secureToken.setUser(user);
+        secureToken.setTokenType(TokenType.EMAIL_VERIFICATION);
+        secureToken.setExpiresAt(java.time.Instant.now().plusSeconds(86400)); // 24 hours
+        secureTokenRepository.deleteAllByUserAndTokenType(user, TokenType.EMAIL_VERIFICATION);
+        secureTokenRepository.save(secureToken);
+//        emailService.sendEmailVerificationEmail(user.getEmail(), token);
     }
 
-    public void verifyEmail(String verificationToken) {
+    @Transactional
+    public void verifyEmailAddress(String token) {
+        SecureToken secureToken = secureTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid token"));
+
+        if (secureToken.isExpired()) {
+            secureTokenRepository.delete(secureToken);
+            throw new ResourceNotFoundException("Invalid token");
+        }
+
+        if (secureToken.getTokenType() != TokenType.EMAIL_VERIFICATION) {
+            throw new ResourceNotFoundException("Invalid token");
+        }
+
+        User user = secureToken.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        secureTokenRepository.deleteAllByUserAndTokenType(user, TokenType.EMAIL_VERIFICATION);
     }
 
-    public void forgotPassword(String emailOrUsername) {
+    @Transactional
+    public void processForgotPassword(String email) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            secureTokenRepository.deleteAllByUserAndTokenType(user, TokenType.PASSWORD_RESET);
+
+            String token = UUID.randomUUID().toString();
+            SecureToken secureToken = new SecureToken();
+            secureToken.setToken(token);
+            secureToken.setUser(user);
+            secureToken.setTokenType(TokenType.PASSWORD_RESET);
+            secureToken.setExpiresAt(Instant.now().plusSeconds(1800));
+            secureTokenRepository.save(secureToken);
+
+//            emailService.sendPasswordResetEmail(user.getEmail(), token);
+        });
     }
 
-    public void resetPassword(String token, String newPassword) {
+    @Transactional
+    public void resetPassword(ResetPasswordRequestDTO request, String token) {
+        SecureToken secureToken = secureTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid token"));
+        if (secureToken.isExpired()) {
+            secureTokenRepository.delete(secureToken);
+            throw new ResourceNotFoundException("Invalid token");
+        }
+        if (secureToken.getTokenType() != TokenType.PASSWORD_RESET) {
+            throw new ResourceNotFoundException("Invalid token");
+        }
+        User user = secureToken.getUser();
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        secureTokenRepository.deleteAllByUserAndTokenType(user, TokenType.PASSWORD_RESET);
+        userRepository.save(user);
     }
 
-    public void changePassword(UUID userId, String oldPassword, String newPassword) {
+    @Transactional
+    public void changePassword(ChangePasswordRequestDTO request, AppUserDetails appUserDetails) {
+        User currentUser = appUserDetails.getUser();
+        FieldsValidationException validation = new FieldsValidationException();
+        if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPasswordHash())) {
+            validation.addError("oldPassword", "Old password is incorrect");
+        }
+        if (validation.hasErrors()) {
+            throw validation;
+        }
+        currentUser.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(currentUser);
     }
 }

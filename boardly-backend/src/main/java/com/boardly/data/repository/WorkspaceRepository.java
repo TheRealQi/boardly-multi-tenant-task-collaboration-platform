@@ -1,6 +1,6 @@
 package com.boardly.data.repository;
 
-import com.boardly.data.model.Workspace;
+import com.boardly.data.model.workspace.Workspace;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

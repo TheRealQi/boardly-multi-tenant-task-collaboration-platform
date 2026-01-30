@@ -1,6 +1,6 @@
 package com.boardly.security.model;
 
-import com.boardly.data.model.User;
+import com.boardly.data.model.authentication.User;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

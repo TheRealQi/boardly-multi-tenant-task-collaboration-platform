@@ -1,12 +1,16 @@
-package com.boardly.data.model;
+package com.boardly.data.model.workspace;
 
 
+import com.boardly.data.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -25,5 +29,8 @@ public class Workspace extends BaseEntity {
     private WorkspaceSettings settings = new WorkspaceSettings();
 
     @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<WorkspaceMember> members = new HashSet<>();
+    private List<WorkspaceInvite> invites = new ArrayList<>();
+
+    @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<WorkspaceMember> membersh = new HashSet<>();
 }

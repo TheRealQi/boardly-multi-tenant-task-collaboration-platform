@@ -2,7 +2,7 @@ package com.boardly.service;
 
 import com.boardly.commmon.enums.BoardCreationSetting;
 import com.boardly.commmon.enums.WorkspaceRole;
-import com.boardly.data.model.Workspace;
+import com.boardly.data.model.workspace.Workspace;
 import com.boardly.data.repository.WorkspaceMemberRepository;
 import com.boardly.data.repository.WorkspaceRepository;
 import com.boardly.exception.ForbiddenException;

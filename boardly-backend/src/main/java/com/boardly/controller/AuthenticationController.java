@@ -1,18 +1,15 @@
 package com.boardly.controller;
 
 import com.boardly.commmon.dto.ApiSuccessResponseDTO;
-import com.boardly.commmon.dto.authentication.LoginRequestDTO;
-import com.boardly.commmon.dto.authentication.LoginResponseDTO;
-import com.boardly.commmon.dto.authentication.RegisterRequestDTO;
+import com.boardly.commmon.dto.authentication.*;
+import com.boardly.security.model.AppUserDetails;
 import com.boardly.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 
@@ -36,4 +33,42 @@ public class AuthenticationController {
         LoginResponseDTO loginResponseDTO = authenticationService.login(loginRequestDTO, httpServletRequest);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Login successful", loginResponseDTO));
     }
+
+//    @PutMapping("/logout")
+//    public ResponseEntity<ApiSuccessResponseDTO<Void>> logout(@AuthenticationPrincipal AppUserDetails appUserDetails) {
+//        authenticationService.logout(appUserDetails);
+//        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Logout successful"));
+//    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> forgotPassword(@RequestParam String email) {
+        authenticationService.processForgotPassword(email);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Password reset email sent"));
+    }
+
+    @PutMapping("/reset-password")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequestDTO request, @RequestParam String token) {
+        authenticationService.resetPassword(request, token);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Password has been reset"));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> changePassword(@RequestBody @Valid ChangePasswordRequestDTO request, @AuthenticationPrincipal AppUserDetails appUserDetails) {
+        authenticationService.changePassword(request, appUserDetails);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Password changed successfully"));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> verifyEmail(@RequestParam String token) {
+        authenticationService.verifyEmailAddress(token);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Email verified successfully"));
+    }
+
+    @PostMapping("/send-verification-email")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> sendVerificationEmail(@AuthenticationPrincipal AppUserDetails appUserDetails) {
+        authenticationService.sendEmailVerificationEmail(appUserDetails.getUser());
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Verification email sent successfully"));
+    }
+
+
 }

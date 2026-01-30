@@ -5,7 +5,7 @@ import com.boardly.commmon.dto.workspace.EditWorkspaceRequestDTO;
 import com.boardly.commmon.dto.workspace.WorkspaceCreationDTO;
 import com.boardly.commmon.dto.workspace.WorkspaceDTO;
 import com.boardly.commmon.dto.workspace.WorkspaceSettingsDTO;
-import com.boardly.data.model.Workspace;
+import com.boardly.data.model.workspace.Workspace;
 import com.boardly.security.model.AppUserDetails;
 import com.boardly.service.WorkspaceService;
 import jakarta.validation.Valid;
