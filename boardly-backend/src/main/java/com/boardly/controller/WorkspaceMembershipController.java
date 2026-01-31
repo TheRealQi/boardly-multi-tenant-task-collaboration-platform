@@ -73,7 +73,7 @@ public class WorkspaceMembershipController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Member role changed successfully", null));
     }
 
-    @PutMapping("/{workspaceId}/transfer-ownership/{newOwnerId}")
+    @PutMapping("/transfer-ownership/{newOwnerId}")
     @PreAuthorize("@authorizationSecurityService.canDeleteWorkspace(#workspaceId)")
     public ResponseEntity<ApiSuccessResponseDTO<Void>> transferWorkspaceOwnership(@PathVariable UUID workspaceId, @PathVariable UUID newOwnerId, @AuthenticationPrincipal AppUserDetails appUserDetails) {
         workspaceMembershipService.transferWorkspaceOwnership(workspaceId, newOwnerId, appUserDetails);

@@ -42,7 +42,7 @@ public class WorkspaceMembershipService {
     @Transactional
     public void leaveWorkspace(UUID workspaceId, AppUserDetails appUserDetails) {
         UUID userId = appUserDetails.getUserId();
-        WorkspaceMember member = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, userId)
+        WorkspaceMember member = workspaceMemberRepository.findByWorkspace_IdAndUser_Id(workspaceId, userId)
                 .orElseThrow(() -> new ForbiddenException("You are not a member of this workspace"));
 
         if (member.getRole() == WorkspaceRole.OWNER) {
@@ -56,11 +56,11 @@ public class WorkspaceMembershipService {
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow(() -> new ResourceNotFoundException("Workspace not found"));
         User userToInvite = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
 
-        if (workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, userToInvite.getId())) {
+        if (workspaceMemberRepository.existsByWorkspace_IdAndUser_Id(workspaceId, userToInvite.getId())) {
             throw new BadRequestException("User is already a member of this workspace");
         }
 
-        if (workspaceInviteRepository.existsByWorkspaceIdAndUserIdAndStatus(workspaceId, userToInvite.getId(), InviteStatus.PENDING)) {
+        if (workspaceInviteRepository.existsByWorkspace_IdAndUser_IdAndStatus(workspaceId, userToInvite.getId(), InviteStatus.PENDING)) {
             throw new BadRequestException("User already has a pending invitation");
         }
 
@@ -74,7 +74,7 @@ public class WorkspaceMembershipService {
 
         workspaceInviteRepository.save(invite);
 
-        return new WorkspaceInviteDTO(invite.getId(), invite.getWorkspaceId(), workspace.getTitle(), invite.getInvitedBy(), invite.getStatus(), invite.getExpiresAt());
+        return new WorkspaceInviteDTO(invite.getId(), workspace.getId(), workspace.getTitle(), invite.getInvitedBy(), invite.getStatus(), invite.getExpiresAt());
     }
 
     @Transactional
@@ -82,7 +82,7 @@ public class WorkspaceMembershipService {
         if (memberId.equals(appUserDetails.getUserId())) {
             throw new BadRequestException("Use leave workspace endpoint to leave the workspace.");
         }
-        WorkspaceMember memberToRemove = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, memberId)
+        WorkspaceMember memberToRemove = workspaceMemberRepository.findByWorkspace_IdAndUser_Id(workspaceId, memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
         if (memberToRemove.getRole() == WorkspaceRole.OWNER) {
             throw new ForbiddenException("Cannot remove the workspace owner.");
@@ -92,7 +92,7 @@ public class WorkspaceMembershipService {
 
     @Transactional
     public void acceptInvitationToWorkspace(UUID invitationId, AppUserDetails appUserDetails) {
-        WorkspaceInvite invite = workspaceInviteRepository.findByIdAndUserId(invitationId, appUserDetails.getUserId())
+        WorkspaceInvite invite = workspaceInviteRepository.findByIdAndUser_Id(invitationId, appUserDetails.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid Invitation"));
 
 
@@ -106,7 +106,7 @@ public class WorkspaceMembershipService {
             throw new BadRequestException("Invitation has expired");
         }
 
-        if (workspaceMemberRepository.existsByWorkspaceIdAndUserId(invite.getWorkspace().getId(), appUserDetails.getUserId())) {
+        if (workspaceMemberRepository.existsByWorkspace_IdAndUser_Id(invite.getWorkspace().getId(), appUserDetails.getUserId())) {
             throw new BadRequestException("You are already a member of this workspace");
         }
 
@@ -122,7 +122,7 @@ public class WorkspaceMembershipService {
 
     @Transactional
     public void declineInvitationToWorkspace(UUID invitationId, AppUserDetails appUserDetails) {
-        WorkspaceInvite invite = workspaceInviteRepository.findByIdAndUserId(invitationId, appUserDetails.getUserId())
+        WorkspaceInvite invite = workspaceInviteRepository.findByIdAndUser_Id(invitationId, appUserDetails.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid Invitation"));
 
 
@@ -141,7 +141,7 @@ public class WorkspaceMembershipService {
             throw new BadRequestException("Cannot assign Owner role. Use transfer ownership.");
         }
 
-        WorkspaceMember targetMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, memberId)
+        WorkspaceMember targetMember = workspaceMemberRepository.findByWorkspace_IdAndUser_Id(workspaceId, memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
 
         if (targetMember.getRole() == WorkspaceRole.OWNER) {
@@ -154,14 +154,14 @@ public class WorkspaceMembershipService {
 
     @Transactional
     public void transferWorkspaceOwnership(UUID workspaceId, UUID newOwnerId, AppUserDetails currentUser) {
-        WorkspaceMember currentOwner = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, currentUser.getUserId())
+        WorkspaceMember currentOwner = workspaceMemberRepository.findByWorkspace_IdAndUser_Id(workspaceId, currentUser.getUserId())
                 .orElseThrow(() -> new ForbiddenException("You are not a member of this workspace"));
 
         if (currentOwner.getRole() != WorkspaceRole.OWNER) {
             throw new ForbiddenException("Only the Owner can transfer ownership.");
         }
 
-        WorkspaceMember newOwner = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, newOwnerId)
+        WorkspaceMember newOwner = workspaceMemberRepository.findByWorkspace_IdAndUser_Id(workspaceId, newOwnerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User is not a member of this workspace"));
 
         currentOwner.setRole(WorkspaceRole.ADMIN);
@@ -172,7 +172,7 @@ public class WorkspaceMembershipService {
     }
 
     public List<WorkspaceInviteDTO> getUserPendingWorkspaceInvites(AppUserDetails currentUser) {
-        return workspaceInviteRepository.findAllByUserIdAndStatus(currentUser.getUserId(), InviteStatus.PENDING).stream()
+        return workspaceInviteRepository.findAllByUser_IdAndStatus(currentUser.getUserId(), InviteStatus.PENDING).stream()
                 .map(invite -> new WorkspaceInviteDTO(
                         invite.getId(),
                         invite.getWorkspace().getId(),
@@ -186,7 +186,7 @@ public class WorkspaceMembershipService {
     public List<WorkspaceInviteDTO> getWorkspacePendingInvites(UUID workspaceId) {
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace not found"));
-        return workspaceInviteRepository.findAllByWorkspaceIdAndStatus(workspaceId, InviteStatus.PENDING).stream()
+        return workspaceInviteRepository.findAllByWorkspace_IdAndStatus(workspaceId, InviteStatus.PENDING).stream()
                 .map(invite -> new WorkspaceInviteDTO(
                         invite.getId(),
                         invite.getWorkspace().getId(),

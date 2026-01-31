@@ -8,10 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface WorkspaceInviteRepository extends JpaRepository<WorkspaceInvite, Integer> {
-    boolean existsByWorkspaceIdAndUserIdAndStatus(UUID workspaceId, UUID userId, InviteStatus status);
-    Optional<WorkspaceInvite> findById(UUID invitationId);
-    Optional<WorkspaceInvite> findAllByUserIdAndStatus(UUID userId, InviteStatus status);
-    Optional<WorkspaceInvite> findAllByWorkspaceIdAndStatus(UUID workspaceId, InviteStatus status);
-    Optional<WorkspaceInvite> findByIdAndUserId(UUID invitationId, UUID userId);
-
+    boolean existsByWorkspace_IdAndUser_IdAndStatus(UUID workspaceId, UUID userId, InviteStatus status);
+    Optional<WorkspaceInvite> findAllByUser_IdAndStatus(UUID userId, InviteStatus status);
+    Optional<WorkspaceInvite> findAllByWorkspace_IdAndStatus(UUID workspaceId, InviteStatus status);
+    Optional<WorkspaceInvite> findByIdAndUser_Id(UUID invitationId, UUID userId);
 }

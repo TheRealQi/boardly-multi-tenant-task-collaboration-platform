@@ -18,9 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WorkspaceInvite extends BaseEntity {
-    @Column(nullable = false)
-    private UUID workspaceId;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "workspace_id")
     private Workspace workspace;
@@ -38,5 +35,4 @@ public class WorkspaceInvite extends BaseEntity {
 
     @Column(nullable = false)
     private UUID invitedBy;
-
 }

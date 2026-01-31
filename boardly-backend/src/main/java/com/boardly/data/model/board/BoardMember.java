@@ -1,9 +1,10 @@
-package com.boardly.data.model.workspace;
+package com.boardly.data.model.board;
 
-import com.boardly.commmon.enums.WorkspaceRole;
+import com.boardly.commmon.enums.BoardRole;
 import com.boardly.data.model.BaseEntity;
 import com.boardly.data.model.authentication.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,15 +15,18 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-public class WorkspaceMember extends BaseEntity {
+public class BoardMember extends BaseEntity {
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workspace_id")
-    private Workspace workspace;
+    @JoinColumn(name = "board_id")
+    private Board board;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
-    private WorkspaceRole role = WorkspaceRole.MEMBER;
+    private BoardRole role = BoardRole.MEMBER;
 }

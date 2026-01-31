@@ -6,8 +6,8 @@ import com.boardly.commmon.dto.workspace.WorkspaceDTO;
 import com.boardly.commmon.dto.workspace.WorkspaceSettingsDTO;
 import com.boardly.commmon.enums.WorkspaceRole;
 import com.boardly.data.model.workspace.Workspace;
+import com.boardly.data.model.workspace.WorkspaceBoardCreationSetting;
 import com.boardly.data.model.workspace.WorkspaceMember;
-import com.boardly.data.model.workspace.WorkspaceSettings;
 import com.boardly.data.repository.WorkspaceMemberRepository;
 import com.boardly.data.repository.WorkspaceRepository;
 import com.boardly.exception.ForbiddenException;
@@ -72,7 +72,7 @@ public class WorkspaceService {
 
     public List<WorkspaceDTO> getAllWorkspacesForUser(AppUserDetails userPrincipal) {
         UUID userId = userPrincipal.getUserId();
-        List<WorkspaceMember> workspaceMemberships = workspaceMemberRepository.findAllByUserId(userId);
+        List<WorkspaceMember> workspaceMemberships = workspaceMemberRepository.findAllByUser(userPrincipal.getUser());
         List<WorkspaceDTO> workspaceDTOList = workspaceMemberships.stream()
                 .map(m -> {
                     Workspace workspace = m.getWorkspace();
@@ -91,18 +91,18 @@ public class WorkspaceService {
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow(() -> new ResourceNotFoundException("Workspace not found"));
         workspace.setTitle(editWorkspaceRequestDTO.getTitle());
         workspace.setDescription(editWorkspaceRequestDTO.getDescription());
-        WorkspaceSettings settings = workspace.getSettings();
+        WorkspaceBoardCreationSetting settings = workspace.getBoardCreationSettings();
         settings.setPrivateBoardCreation(editWorkspaceRequestDTO.getPrivateBoardCreationSetting());
         settings.setWorkspaceVisibleBoardCreation(editWorkspaceRequestDTO.getWorkspaceBoardCreationSetting());
-        workspace.setSettings(settings);
+        workspace.setBoardCreationSettings(settings);
         Workspace updatedWorkspace = workspaceRepository.save(workspace);
 
         WorkspaceSettingsDTO workspaceSettingsDTO = new WorkspaceSettingsDTO();
         workspaceSettingsDTO.setWorkspaceId(updatedWorkspace.getId());
         workspaceSettingsDTO.setTitle(updatedWorkspace.getTitle());
         workspaceSettingsDTO.setDescription(updatedWorkspace.getDescription());
-        workspaceSettingsDTO.setPrivateBoardCreationSetting(updatedWorkspace.getSettings().getPrivateBoardCreation());
-        workspaceSettingsDTO.setWorkspaceBoardCreationSetting(updatedWorkspace.getSettings().getWorkspaceVisibleBoardCreation());
+        workspaceSettingsDTO.setPrivateBoardCreationSetting(updatedWorkspace.getBoardCreationSettings().getPrivateBoardCreation());
+        workspaceSettingsDTO.setWorkspaceBoardCreationSetting(updatedWorkspace.getBoardCreationSettings().getWorkspaceVisibleBoardCreation());
         return workspaceSettingsDTO;
     }
 }
