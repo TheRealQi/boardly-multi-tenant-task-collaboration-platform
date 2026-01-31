@@ -1,4 +1,4 @@
-package com.boardly.commmon.dto;
+package com.boardly.commmon.dto.workspace;
 
 import com.boardly.commmon.enums.InviteStatus;
 import lombok.AllArgsConstructor;
@@ -7,14 +7,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class InviteResponseDTO {
-    private String email;
+public class WorkspaceInviteDTO {
+    private UUID inviteId;
+    private UUID workspaceId;
+    private String workspaceName;
+    private UUID invitedBy;
     private InviteStatus status;
-    private Instant invitedAt;
     private Instant expiresAt;
 }

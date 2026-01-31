@@ -1,6 +1,7 @@
 package com.boardly.service;
 
 import com.boardly.commmon.enums.BoardCreationSetting;
+import com.boardly.commmon.enums.BoardVisibility;
 import com.boardly.commmon.enums.WorkspaceRole;
 import com.boardly.data.model.workspace.Workspace;
 import com.boardly.data.repository.WorkspaceMemberRepository;
@@ -43,32 +44,63 @@ public class AuthorizationSecurityService {
     }
 
     public boolean canDeleteWorkspace(UUID workspaceId) {
-        return getCurrentUserWorkspaceRole(workspaceId) == WorkspaceRole.OWNER;
+        if (getCurrentUserWorkspaceRole(workspaceId) != WorkspaceRole.OWNER) {
+            throw new ForbiddenException("Only workspace owners can delete the workspace");
+        }
+        return true;
     }
 
     public boolean canInviteWorkspaceMembers(UUID workspaceId) {
         WorkspaceRole role = getCurrentUserWorkspaceRole(workspaceId);
-        return role == WorkspaceRole.OWNER || role == WorkspaceRole.ADMIN;
+        if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
+            throw new ForbiddenException("Only workspace owners and admins can invite members");
+        }
+        return true;
     }
+
+    public boolean canRemoveWorkspaceMembers(UUID workspaceId) {
+        WorkspaceRole role = getCurrentUserWorkspaceRole(workspaceId);
+        if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
+            throw new ForbiddenException("Only workspace owners and admins can remove members");
+        }
+        return true;
+    }
+
+    public boolean canChangeWorkspaceMemberRole(UUID workspaceId) {
+        WorkspaceRole role = getCurrentUserWorkspaceRole(workspaceId);
+        if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
+            throw new ForbiddenException("Only workspace owners and admins can change member roles");
+        }
+        return true;
+    }
+
 
     public boolean canEditWorkspace(UUID workspaceId) {
         WorkspaceRole role = getCurrentUserWorkspaceRole(workspaceId);
-        return role == WorkspaceRole.OWNER || role == WorkspaceRole.ADMIN;
+        if (role != WorkspaceRole.OWNER && role != WorkspaceRole.ADMIN) {
+            throw new ForbiddenException("Only workspace owners and admins can edit the workspace");
+        }
+        return true;
     }
 
-    public boolean canCreateBoard(UUID workspaceId, boolean isPrivate) {
+    public boolean canCreateBoard(UUID workspaceId, BoardVisibility visibility) {
         WorkspaceRole role = getCurrentUserWorkspaceRole(workspaceId);
         if (role == WorkspaceRole.OWNER || role == WorkspaceRole.ADMIN) {
             return true;
         }
         if (role == WorkspaceRole.GUEST) {
-            return false;
+            throw new ForbiddenException("Workspace guests are not allowed to create boards");
         }
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow(() -> new ResourceNotFoundException("Workspace not found"));
-        if (isPrivate) {
-            return workspace.getSettings().getPrivateBoardCreation() == BoardCreationSetting.ANY_MEMBER;
+        if (visibility == BoardVisibility.PRIVATE) {
+            if (workspace.getBoardCreationSettings().getPrivateBoardCreation() == BoardCreationSetting.ADMINS_ONLY) {
+                throw new ForbiddenException("Only workspace owners and admins can create private boards");
+            }
         } else {
-            return workspace.getSettings().getWorkspaceVisibleBoardCreation() == BoardCreationSetting.ANY_MEMBER;
+            if (workspace.getBoardCreationSettings().getWorkspaceVisibleBoardCreation() == BoardCreationSetting.ADMINS_ONLY) {
+                throw new ForbiddenException("Only workspace owners and admins can create public boards");
+            }
         }
+        return true;
     }
 }

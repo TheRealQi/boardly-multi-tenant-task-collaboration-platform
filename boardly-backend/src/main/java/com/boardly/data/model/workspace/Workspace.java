@@ -26,7 +26,7 @@ public class Workspace extends BaseEntity {
     private String description;
 
     @Embedded
-    private WorkspaceSettings settings = new WorkspaceSettings();
+    private WorkspaceBoardCreationSetting boardCreationSettings = new WorkspaceBoardCreationSetting();
 
     @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WorkspaceInvite> invites = new ArrayList<>();

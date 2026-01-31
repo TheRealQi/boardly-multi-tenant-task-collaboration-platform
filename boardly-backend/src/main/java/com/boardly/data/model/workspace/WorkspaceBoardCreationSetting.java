@@ -14,7 +14,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Embeddable
-public class WorkspaceSettings {
+public class WorkspaceBoardCreationSetting {
     @Enumerated(EnumType.STRING)
     private BoardCreationSetting workspaceVisibleBoardCreation = BoardCreationSetting.ANY_MEMBER;
 

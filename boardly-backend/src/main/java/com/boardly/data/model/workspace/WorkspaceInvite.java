@@ -4,11 +4,19 @@ import com.boardly.commmon.enums.InviteStatus;
 import com.boardly.data.model.BaseEntity;
 import com.boardly.data.model.authentication.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class WorkspaceInvite extends BaseEntity {
     @Column(nullable = false)
     private UUID workspaceId;
@@ -20,9 +28,6 @@ public class WorkspaceInvite extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     private User user;
-
-    @Column(nullable = false, unique = true)
-    private String tokenHash;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
