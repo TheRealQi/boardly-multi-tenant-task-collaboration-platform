@@ -4,7 +4,7 @@ import com.boardly.commmon.dto.ApiSuccessResponseDTO;
 import com.boardly.commmon.dto.workspace.EditWorkspaceRequestDTO;
 import com.boardly.commmon.dto.workspace.WorkspaceCreationDTO;
 import com.boardly.commmon.dto.workspace.WorkspaceDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceSettingsDTO;
+import com.boardly.commmon.dto.workspace.WorkspaceDetailsDTO;
 import com.boardly.data.model.workspace.Workspace;
 import com.boardly.security.model.AppUserDetails;
 import com.boardly.service.WorkspaceService;
@@ -29,17 +29,17 @@ public class WorkspaceController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<ApiSuccessResponseDTO<Workspace>> createWorkspace(@Valid @RequestBody WorkspaceCreationDTO workspaceCreationDTO, @AuthenticationPrincipal AppUserDetails userPrincipal) {
+    public ResponseEntity<ApiSuccessResponseDTO<WorkspaceDetailsDTO>> createWorkspace(@Valid @RequestBody WorkspaceCreationDTO workspaceCreationDTO, @AuthenticationPrincipal AppUserDetails userPrincipal) {
 
-        Workspace workspace = workspaceService.createWorkspace(workspaceCreationDTO, userPrincipal);
+        WorkspaceDetailsDTO workspace = workspaceService.createWorkspace(workspaceCreationDTO, userPrincipal);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), workspace.getCreatedAt(), "Workspace created successfully", workspace));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Workspace created successfully", workspace));
     }
 
     @GetMapping("/{workspaceId}")
     @PreAuthorize("@authorizationSecurityService.isWorkspaceMember(#workspaceId)")
-    public ResponseEntity<ApiSuccessResponseDTO<WorkspaceDTO>> getWorkspace(@PathVariable UUID workspaceId, @AuthenticationPrincipal AppUserDetails userPrincipal) {
-        WorkspaceDTO workspaceDTO = workspaceService.getWorkspace(workspaceId, userPrincipal);
+    public ResponseEntity<ApiSuccessResponseDTO<WorkspaceDetailsDTO>> getWorkspace(@PathVariable UUID workspaceId, @AuthenticationPrincipal AppUserDetails userPrincipal) {
+        WorkspaceDetailsDTO workspaceDTO = workspaceService.getWorkspace(workspaceId, userPrincipal);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Workspace retrieved successfully", workspaceDTO));
     }
 
@@ -58,8 +58,15 @@ public class WorkspaceController {
 
     @PutMapping("/{workspaceId}")
     @PreAuthorize("@authorizationSecurityService.canEditWorkspace(#workspaceId)")
-    public ResponseEntity<ApiSuccessResponseDTO<WorkspaceSettingsDTO>> editWorkspace(@PathVariable UUID workspaceId, @Valid @RequestBody EditWorkspaceRequestDTO workspaceEditDTO) {
-        WorkspaceSettingsDTO updatedWorkspace = workspaceService.editWorkspace(workspaceId, workspaceEditDTO);
+    public ResponseEntity<ApiSuccessResponseDTO<WorkspaceDetailsDTO>> editWorkspace(@PathVariable UUID workspaceId, @Valid @RequestBody EditWorkspaceRequestDTO workspaceEditDTO) {
+        WorkspaceDetailsDTO updatedWorkspace = workspaceService.editWorkspace(workspaceId, workspaceEditDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Workspace updated successfully", updatedWorkspace));
+    }
+
+    @PutMapping("/{workspaceId}/settings")
+    @PreAuthorize("@authorizationSecurityService.canEditWorkspace(#workspaceId)")
+    public ResponseEntity<ApiSuccessResponseDTO<WorkspaceDetailsDTO>> editWorkspaceSettings(@PathVariable UUID workspaceId, @Valid @RequestBody EditWorkspaceRequestDTO workspaceEditDTO) {
+        WorkspaceDetailsDTO updatedWorkspace = workspaceService.editWorkspace(workspaceId, workspaceEditDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Workspace updated successfully", updatedWorkspace));
     }
 }

@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class ChangeRoleDTO {
+public class WorkspaceChangeRoleDTO {
     @NotNull(message = "New role is required")
     private WorkspaceRole role;
 }

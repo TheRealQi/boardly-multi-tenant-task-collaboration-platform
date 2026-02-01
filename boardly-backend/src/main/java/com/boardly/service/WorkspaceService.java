@@ -1,9 +1,6 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.workspace.EditWorkspaceRequestDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceCreationDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceSettingsDTO;
+import com.boardly.commmon.dto.workspace.*;
 import com.boardly.commmon.enums.WorkspaceRole;
 import com.boardly.data.model.workspace.Workspace;
 import com.boardly.data.model.workspace.WorkspaceBoardCreationSetting;
@@ -31,7 +28,7 @@ public class WorkspaceService {
     }
 
     @Transactional
-    public Workspace createWorkspace(WorkspaceCreationDTO workspaceCreationDTO, AppUserDetails userPrincipal) {
+    public WorkspaceDetailsDTO createWorkspace(WorkspaceCreationDTO workspaceCreationDTO, AppUserDetails userPrincipal) {
         String title = workspaceCreationDTO.getTitle();
         String description = workspaceCreationDTO.getDescription();
 
@@ -47,7 +44,7 @@ public class WorkspaceService {
         workspaceMember.setRole(WorkspaceRole.OWNER);
         workspaceMemberRepository.save(workspaceMember);
 
-        return savedWorkspace;
+        return new WorkspaceDetailsDTO();
     }
 
     @Transactional
@@ -58,7 +55,7 @@ public class WorkspaceService {
         workspaceRepository.deleteById(workspaceId);
     }
 
-    public WorkspaceDTO getWorkspace(UUID workspaceId, AppUserDetails userPrincipal) {
+    public WorkspaceDetailsDTO getWorkspace(UUID workspaceId, AppUserDetails userPrincipal) {
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow(() -> new ResourceNotFoundException("Workspace not found"));
         WorkspaceRole userRole = workspaceMemberRepository.findRoleByWorkspaceIdAndUserId(workspaceId, userPrincipal.getUserId())
                 .orElseThrow(() -> new ForbiddenException("User is not a member of the workspace"));
@@ -67,11 +64,10 @@ public class WorkspaceService {
         workspaceDTO.setTitle(workspace.getTitle());
         workspaceDTO.setDescription(workspace.getDescription());
         workspaceDTO.setRole(userRole);
-        return workspaceDTO;
+        return new WorkspaceDetailsDTO();
     }
 
     public List<WorkspaceDTO> getAllWorkspacesForUser(AppUserDetails userPrincipal) {
-        UUID userId = userPrincipal.getUserId();
         List<WorkspaceMember> workspaceMemberships = workspaceMemberRepository.findAllByUser(userPrincipal.getUser());
         List<WorkspaceDTO> workspaceDTOList = workspaceMemberships.stream()
                 .map(m -> {
@@ -87,17 +83,15 @@ public class WorkspaceService {
     }
 
     @Transactional
-    public WorkspaceSettingsDTO editWorkspace(UUID workspaceId, EditWorkspaceRequestDTO editWorkspaceRequestDTO) {
+    public WorkspaceDetailsDTO editWorkspace(UUID workspaceId, EditWorkspaceRequestDTO editWorkspaceRequestDTO) {
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow(() -> new ResourceNotFoundException("Workspace not found"));
         workspace.setTitle(editWorkspaceRequestDTO.getTitle());
         workspace.setDescription(editWorkspaceRequestDTO.getDescription());
         WorkspaceBoardCreationSetting settings = workspace.getBoardCreationSettings();
-        settings.setPrivateBoardCreation(editWorkspaceRequestDTO.getPrivateBoardCreationSetting());
-        settings.setWorkspaceVisibleBoardCreation(editWorkspaceRequestDTO.getWorkspaceBoardCreationSetting());
         workspace.setBoardCreationSettings(settings);
         Workspace updatedWorkspace = workspaceRepository.save(workspace);
 
-        WorkspaceSettingsDTO workspaceSettingsDTO = new WorkspaceSettingsDTO();
+        WorkspaceDetailsDTO workspaceSettingsDTO = new WorkspaceDetailsDTO();
         workspaceSettingsDTO.setWorkspaceId(updatedWorkspace.getId());
         workspaceSettingsDTO.setTitle(updatedWorkspace.getTitle());
         workspaceSettingsDTO.setDescription(updatedWorkspace.getDescription());
@@ -105,4 +99,26 @@ public class WorkspaceService {
         workspaceSettingsDTO.setWorkspaceBoardCreationSetting(updatedWorkspace.getBoardCreationSettings().getWorkspaceVisibleBoardCreation());
         return workspaceSettingsDTO;
     }
+
+    @Transactional
+    public WorkspaceDetailsDTO editWorkspaceSettings(UUID workspaceId, EditWorkspaceSettingsRequestDTO editWorkspaceSettingsRequestDTO) {
+        Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow(() -> new ResourceNotFoundException("Workspace not found"));
+
+        WorkspaceBoardCreationSetting boardCreationSettings = new WorkspaceBoardCreationSetting();
+        boardCreationSettings.setPrivateBoardCreation(editWorkspaceSettingsRequestDTO.getPrivateBoardCreationSetting());
+        boardCreationSettings.setWorkspaceVisibleBoardCreation(editWorkspaceSettingsRequestDTO.getWorkspaceBoardCreationSetting());
+        workspace.setBoardCreationSettings(boardCreationSettings);
+        Workspace updatedWorkspace = workspaceRepository.save(workspace);
+
+        WorkspaceDetailsDTO workspaceSettingsDTO = new WorkspaceDetailsDTO();
+        workspaceSettingsDTO.setWorkspaceId(updatedWorkspace.getId());
+        workspaceSettingsDTO.setTitle(updatedWorkspace.getTitle());
+        workspaceSettingsDTO.setDescription(updatedWorkspace.getDescription());
+        workspaceSettingsDTO.setPrivateBoardCreationSetting(updatedWorkspace.getBoardCreationSettings().getPrivateBoardCreation());
+        workspaceSettingsDTO.setWorkspaceBoardCreationSetting(updatedWorkspace.getBoardCreationSettings().getWorkspaceVisibleBoardCreation());
+
+        return workspaceSettingsDTO;
+    }
+
+
 }

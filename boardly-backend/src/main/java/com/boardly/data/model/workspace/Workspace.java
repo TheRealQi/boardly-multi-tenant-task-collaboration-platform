@@ -2,6 +2,7 @@ package com.boardly.data.model.workspace;
 
 
 import com.boardly.data.model.BaseEntity;
+import com.boardly.data.model.board.Board;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,8 +23,8 @@ public class Workspace extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = true)
-    private String description;
+    @Column
+    private String description = "";
 
     @Embedded
     private WorkspaceBoardCreationSetting boardCreationSettings = new WorkspaceBoardCreationSetting();
@@ -33,4 +34,7 @@ public class Workspace extends BaseEntity {
 
     @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WorkspaceMember> members = new HashSet<>();
+
+    @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Board> boards = new ArrayList<>();
 }

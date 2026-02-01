@@ -1,21 +1,19 @@
 package com.boardly.commmon.dto.workspace;
 
 import com.boardly.commmon.enums.BoardCreationSetting;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkspaceSettingsDTO {
-    private UUID workspaceId;
-    private String title;
-    private String description;
+public class EditWorkspaceSettingsRequestDTO {
+    @NotNull(message = "Private board creation setting is required")
     private BoardCreationSetting privateBoardCreationSetting;
+    @NotNull(message = "Workspace board creation setting is required")
     private BoardCreationSetting workspaceBoardCreationSetting;
 }

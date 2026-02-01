@@ -134,13 +134,11 @@ public class AuthorizationSecurityService {
     private BoardRole getCurrentUserBoardRole(UUID boardId) {
         return boardMemberRepository
                 .findRoleByBoardIdAndUserId(boardId, getCurrentUserId())
-                .orElseThrow(() ->
-                        new ForbiddenException("You are not a member of this board."));
+                .orElseThrow(() -> new ForbiddenException("You are not a member of this board."));
     }
 
     public boolean isBoardMember(UUID boardId) {
-        return boardMemberRepository
-                .existsByBoard_IdAndUser_Id(boardId, getCurrentUserId());
+        return boardMemberRepository.existsByBoard_IdAndUser_Id(boardId, getCurrentUserId());
     }
 
     public boolean canDeleteBoard(UUID boardId) {
@@ -183,7 +181,10 @@ public class AuthorizationSecurityService {
         throw new ForbiddenException("You are not allowed to view this board.");
     }
 
-    public boolean canEditBoardContent(UUID workspaceId, UUID boardId) {
+    public boolean canEditBoardContent(UUID boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found."));
+        UUID workspaceId = board.getWorkspace().getId();
         WorkspaceRole workspaceRole = getCurrentUserWorkspaceRole(workspaceId);
         if (workspaceRole == WorkspaceRole.OWNER || workspaceRole == WorkspaceRole.ADMIN) {
             return true;
@@ -245,11 +246,13 @@ public class AuthorizationSecurityService {
         return canEditBoard(boardId);
     }
 
-    public boolean canJoinBoard(UUID workspaceId, UUID boardId) {
+    public boolean canJoinBoard(UUID boardId) {
         if (isBoardMember(boardId)) {
             throw new ForbiddenException("You are already a member of this board.");
         }
-
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found."));
+        UUID workspaceId = board.getWorkspace().getId();
         WorkspaceRole workspaceRole = getCurrentUserWorkspaceRole(workspaceId);
         if (workspaceRole == WorkspaceRole.OWNER || workspaceRole == WorkspaceRole.ADMIN) {
             return true;
@@ -258,9 +261,6 @@ public class AuthorizationSecurityService {
         if (workspaceRole == WorkspaceRole.GUEST) {
             throw new ForbiddenException("You are not allowed to join this board.");
         }
-
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Board not found."));
 
         if (board.getBoardVisibility() == BoardVisibility.WORKSPACE) {
             return true;

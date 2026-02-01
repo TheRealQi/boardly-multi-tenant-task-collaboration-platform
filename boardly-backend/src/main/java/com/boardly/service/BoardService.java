@@ -67,7 +67,6 @@ public class BoardService {
         boardDTO.setBoardRole(boardMember.getRole());
         boardDTO.setWorkspace(workspaceDTO);
 
-
         return boardDTO;
     }
 

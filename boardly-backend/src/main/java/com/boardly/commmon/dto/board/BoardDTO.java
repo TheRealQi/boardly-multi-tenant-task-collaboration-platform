@@ -14,7 +14,7 @@ public class BoardDTO {
     private UUID boardId;
     private String title;
     private String description;
-    private WorkspaceDTO workspace;
     private BoardVisibility boardVisibility;
     private BoardRole boardRole;
+    private WorkspaceDTO workspace;
 }

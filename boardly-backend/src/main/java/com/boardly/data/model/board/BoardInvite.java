@@ -1,8 +1,9 @@
-package com.boardly.data.model.workspace;
+package com.boardly.data.model.board;
 
 import com.boardly.commmon.enums.InviteStatus;
 import com.boardly.data.model.BaseEntity;
 import com.boardly.data.model.authentication.User;
+import com.boardly.data.model.workspace.Workspace;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,10 +18,10 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkspaceInvite extends BaseEntity {
+public class BoardInvite extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "workspace_id")
-    private Workspace workspace;
+    @JoinColumn(name = "board_id")
+    private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "invitee_id")
@@ -36,5 +37,4 @@ public class WorkspaceInvite extends BaseEntity {
 
     @Column(nullable = false)
     private Instant expiresAt;
-
 }

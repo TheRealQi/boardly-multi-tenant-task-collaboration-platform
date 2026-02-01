@@ -21,9 +21,8 @@ public class BoardCreationDTO {
     private String title;
     @Size(max = 1024, message = "Description must be at most 1024 characters")
     private String description;
-    @NotBlank(message = "Board visibility is required")
+    @NotNull(message = "Board visibility is required")
     private BoardVisibility boardVisibility;
-
     @NotNull(message = "Workspace is required")
     private UUID workspaceId;
 }

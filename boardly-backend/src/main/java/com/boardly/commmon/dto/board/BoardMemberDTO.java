@@ -1,6 +1,7 @@
-package com.boardly.commmon.dto.workspace;
+package com.boardly.commmon.dto.board;
 
 import com.boardly.commmon.dto.UserDTO;
+import com.boardly.commmon.enums.BoardRole;
 import com.boardly.commmon.enums.WorkspaceRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,8 +15,9 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkspaceMemberDTO {
+public class BoardMemberDTO {
+    UUID id;
     UserDTO user;
-    WorkspaceRole role;
+    BoardRole role;
     Instant joinedAt;
 }
