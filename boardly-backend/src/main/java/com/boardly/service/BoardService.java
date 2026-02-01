@@ -1,7 +1,9 @@
 package com.boardly.service;
 
+import com.boardly.commmon.dto.board.BoardChangeVisibilityDTO;
 import com.boardly.commmon.dto.board.BoardCreationDTO;
 import com.boardly.commmon.dto.board.BoardDTO;
+import com.boardly.commmon.dto.board.BoardEditDTO;
 import com.boardly.commmon.dto.workspace.WorkspaceDTO;
 import com.boardly.commmon.enums.BoardRole;
 import com.boardly.commmon.enums.BoardVisibility;
@@ -100,5 +102,72 @@ public class BoardService {
         return boardDTO;
     }
 
+    public BoardDTO editBoard(UUID boardId, BoardEditDTO boardEditDTO, AppUserDetails appUserDetails) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
 
+        BoardRole boardRole = boardMemberRepository.findRoleByBoardIdAndUserId(boardId, appUserDetails.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Board membership not found"));
+
+        if (boardRole != BoardRole.ADMIN) {
+            throw new SecurityException("Only admins can update the board");
+        }
+
+        board.setTitle(boardEditDTO.getTitle());
+        board.setDescription(boardEditDTO.getDescription());
+
+        Board updatedBoard = boardRepository.save(board);
+
+        WorkspaceRole workspaceRole = workspaceMemberRepository.findRoleByWorkspaceIdAndUserId(board.getWorkspace().getId(), appUserDetails.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace membership not found"));
+
+        WorkspaceDTO workspaceDTO = new WorkspaceDTO();
+        workspaceDTO.setWorkspaceId(board.getWorkspace().getId());
+        workspaceDTO.setTitle(board.getWorkspace().getTitle());
+        workspaceDTO.setDescription(board.getWorkspace().getDescription());
+        workspaceDTO.setRole(workspaceRole);
+
+        BoardDTO boardDTO = new BoardDTO();
+        boardDTO.setTitle(updatedBoard.getTitle());
+        boardDTO.setDescription(updatedBoard.getDescription());
+        boardDTO.setBoardVisibility(updatedBoard.getBoardVisibility());
+        boardDTO.setBoardRole(boardRole);
+        boardDTO.setWorkspace(workspaceDTO);
+
+        return boardDTO;
+    }
+
+    public BoardDTO changeBoardVisibility(UUID boardId, BoardChangeVisibilityDTO boardChangeVisibilityDTO, AppUserDetails appUserDetails) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
+
+        BoardRole boardRole = boardMemberRepository.findRoleByBoardIdAndUserId(boardId, appUserDetails.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Board membership not found"));
+
+        if (boardRole != BoardRole.ADMIN) {
+            throw new SecurityException("Only admins can change board visibility");
+        }
+
+        board.setBoardVisibility(boardChangeVisibilityDTO.getBoardVisibility());
+
+        Board updatedBoard = boardRepository.save(board);
+
+        WorkspaceRole workspaceRole = workspaceMemberRepository.findRoleByWorkspaceIdAndUserId(board.getWorkspace().getId(), appUserDetails.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace membership not found"));
+
+        WorkspaceDTO workspaceDTO = new WorkspaceDTO();
+        workspaceDTO.setWorkspaceId(board.getWorkspace().getId());
+        workspaceDTO.setTitle(board.getWorkspace().getTitle());
+        workspaceDTO.setDescription(board.getWorkspace().getDescription());
+        workspaceDTO.setRole(workspaceRole);
+
+        BoardDTO boardDTO = new BoardDTO();
+        boardDTO.setTitle(updatedBoard.getTitle());
+        boardDTO.setDescription(updatedBoard.getDescription());
+        boardDTO.setBoardVisibility(updatedBoard.getBoardVisibility());
+        boardDTO.setBoardRole(boardRole);
+        boardDTO.setWorkspace(workspaceDTO);
+
+        return boardDTO;
+    }
 }
