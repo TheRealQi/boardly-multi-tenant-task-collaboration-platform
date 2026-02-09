@@ -1,0 +1,30 @@
+package com.boardly.data.mapper;
+
+import com.boardly.commmon.dto.workspace.WorkspaceCreationDTO;
+import com.boardly.commmon.dto.workspace.WorkspaceDTO;
+import com.boardly.commmon.dto.workspace.WorkspaceDetailsDTO;
+import com.boardly.commmon.enums.WorkspaceRole;
+import com.boardly.data.model.sql.workspace.Workspace;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+@Mapper(componentModel = "spring")
+public interface WorkspaceMapper {
+    @Mapping(target = "workspaceId", source = "workspace.id")
+    @Mapping(target = "role", source = "role")
+    WorkspaceDTO toDto(Workspace workspace, WorkspaceRole role);
+
+    @Mapping(target = "workspaceId", source = "id")
+    @Mapping(
+            target = "privateBoardCreationSetting",
+            source = "boardCreationSettings.privateBoardCreation"
+    )
+    @Mapping(
+            target = "workspaceBoardCreationSetting",
+            source = "boardCreationSettings.workspaceVisibleBoardCreation"
+    )
+    WorkspaceDetailsDTO toDetailsDto(Workspace workspace);
+
+    @Mapping(target = "id", ignore = true)
+    Workspace toEntity(WorkspaceCreationDTO creationDTO);
+}

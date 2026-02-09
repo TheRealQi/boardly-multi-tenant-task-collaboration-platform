@@ -2,8 +2,8 @@ package com.boardly.service;
 
 import com.boardly.commmon.dto.authentication.*;
 import com.boardly.commmon.enums.TokenType;
-import com.boardly.data.model.authentication.SecureToken;
-import com.boardly.data.model.authentication.User;
+import com.boardly.data.model.sql.authentication.SecureToken;
+import com.boardly.data.model.sql.authentication.User;
 import com.boardly.data.repository.SecureTokenRepository;
 import com.boardly.data.repository.UserDeviceRepository;
 import com.boardly.data.repository.UserRepository;
@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

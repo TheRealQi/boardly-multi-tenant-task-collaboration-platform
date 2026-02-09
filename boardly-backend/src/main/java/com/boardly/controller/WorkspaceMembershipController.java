@@ -24,21 +24,28 @@ public class WorkspaceMembershipController {
         this.workspaceMembershipService = workspaceMembershipService;
     }
 
-    @DeleteMapping("/{workspaceId}/leave")
+    @GetMapping("/{workspaceId}/members") // Done
+    @PreAuthorize("@authorizationSecurityService.isWorkspaceMember(#workspaceId)")
+    public ResponseEntity<ApiSuccessResponseDTO<List<WorkspaceMemberDTO>>> getWorkspaceMembers(@PathVariable UUID workspaceId) {
+        List<WorkspaceMemberDTO> members = workspaceMembershipService.getWorkspaceMembers(workspaceId);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Workspace members retrieved successfully", members));
+    }
+
+    @DeleteMapping("/{workspaceId}/leave") // Done
     @PreAuthorize("@authorizationSecurityService.isWorkspaceMember(#workspaceId)")
     public ResponseEntity<ApiSuccessResponseDTO<Void>> leaveWorkspace(@PathVariable UUID workspaceId, @AuthenticationPrincipal AppUserDetails appUserDetails) {
         workspaceMembershipService.leaveWorkspace(workspaceId, appUserDetails);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Left workspace successfully", null));
     }
 
-    @PostMapping("/{workspaceId}/invite")
+    @PostMapping("/{workspaceId}/invite") // Done
     @PreAuthorize("@authorizationSecurityService.canInviteWorkspaceMembers(#workspaceId)")
     public ResponseEntity<ApiSuccessResponseDTO<Void>> inviteMemberToWorkspace(@PathVariable UUID workspaceId, @RequestParam String email, @AuthenticationPrincipal AppUserDetails appUserDetails) {
         workspaceMembershipService.inviteMemberToWorkspace(workspaceId, email, appUserDetails);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Invitation sent successfully", null));
     }
 
-    @DeleteMapping("/{workspaceId}/members/{memberId}")
+    @DeleteMapping("/{workspaceId}/members/{memberId}") // Done
     @PreAuthorize("@authorizationSecurityService.canRemoveWorkspaceMembers(#workspaceId)")
     public ResponseEntity<ApiSuccessResponseDTO<Void>> removeMemberFromWorkspace(@PathVariable UUID workspaceId, @PathVariable UUID memberId, @AuthenticationPrincipal AppUserDetails appUserDetails) {
         workspaceMembershipService.removeMemberFromWorkspace(workspaceId, memberId, appUserDetails);
@@ -57,6 +64,13 @@ public class WorkspaceMembershipController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Workspace invite declined successfully", null));
     }
 
+    @PutMapping("/{workspaceId}/invite/{inviteId}/cancel")
+    @PreAuthorize("@authorizationSecurityService.canInviteWorkspaceMembers(#workspaceId)")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> cancelWorkspaceInvite(@PathVariable UUID workspaceId, @PathVariable UUID inviteId) {
+        workspaceMembershipService.cancelBoardInvitation(inviteId);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Workspace invite cancelled successfully", null));
+    }
+
     @GetMapping("/{workspaceId}/invites")
     @PreAuthorize("@authorizationSecurityService.canInviteWorkspaceMembers(#workspaceId)")
     public ResponseEntity<ApiSuccessResponseDTO<List<WorkspaceInviteDTO>>> getWorkspaceInvites(@PathVariable UUID workspaceId) {
@@ -73,13 +87,13 @@ public class WorkspaceMembershipController {
 
     @PutMapping("/{workspaceId}/members/{memberId}/role")
     @PreAuthorize("@authorizationSecurityService.canChangeWorkspaceMemberRole(#workspaceId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> changeWorkspaceMemberRole(@PathVariable UUID workspaceId, @PathVariable UUID memberId, @Valid WorkspaceChangeRoleDTO workspaceChangeRoleDTO, @AuthenticationPrincipal AppUserDetails appUserDetails) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> changeWorkspaceMemberRole(@PathVariable UUID workspaceId, @PathVariable UUID memberId, @RequestBody @Valid WorkspaceChangeRoleDTO workspaceChangeRoleDTO) {
         workspaceMembershipService.changeWorkspaceMemberRole(workspaceId, memberId, workspaceChangeRoleDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Member role changed successfully", null));
     }
 
     @PutMapping("/{workspaceId}/transfer-ownership/{newOwnerId}")
-    @PreAuthorize("@authorizationSecurityService.canDeleteWorkspace(#workspaceId)")
+    @PreAuthorize("@authorizationSecurityService.isWorkspaceMember(#workspaceId)")
     public ResponseEntity<ApiSuccessResponseDTO<Void>> transferWorkspaceOwnership(@PathVariable UUID workspaceId, @PathVariable UUID newOwnerId, @AuthenticationPrincipal AppUserDetails appUserDetails) {
         workspaceMembershipService.transferWorkspaceOwnership(workspaceId, newOwnerId, appUserDetails);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Workspace ownership transferred successfully", null));

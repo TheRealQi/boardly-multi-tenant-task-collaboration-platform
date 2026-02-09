@@ -1,6 +1,6 @@
 package com.boardly.data.repository;
 
-import com.boardly.data.model.authentication.UserDevice;
+import com.boardly.data.model.sql.authentication.UserDevice;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.UUID;

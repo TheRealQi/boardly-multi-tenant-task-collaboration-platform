@@ -1,6 +1,6 @@
 package com.boardly.security.service;
 
-import com.boardly.data.model.authentication.User;
+import com.boardly.data.model.sql.authentication.User;
 import com.boardly.data.repository.UserRepository;
 import com.boardly.security.model.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;

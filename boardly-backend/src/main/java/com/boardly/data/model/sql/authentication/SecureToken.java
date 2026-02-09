@@ -1,7 +1,7 @@
-package com.boardly.data.model.authentication;
+package com.boardly.data.model.sql.authentication;
 
 import com.boardly.commmon.enums.TokenType;
-import com.boardly.data.model.BaseEntity;
+import com.boardly.data.model.sql.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

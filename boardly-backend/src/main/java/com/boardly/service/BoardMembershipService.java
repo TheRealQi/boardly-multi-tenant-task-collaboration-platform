@@ -1,17 +1,15 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.board.BoardChangeRoleDTO;
-import com.boardly.commmon.dto.board.BoardInviteDTO;
-import com.boardly.commmon.dto.board.BoardMemberDTO;
+import com.boardly.commmon.dto.board.*;
 import com.boardly.commmon.enums.BoardRole;
 import com.boardly.commmon.enums.InviteStatus;
 import com.boardly.commmon.enums.WorkspaceRole;
 import com.boardly.data.mapper.UserMapper;
-import com.boardly.data.model.authentication.User;
-import com.boardly.data.model.board.Board;
-import com.boardly.data.model.board.BoardInvite;
-import com.boardly.data.model.board.BoardMember;
-import com.boardly.data.model.workspace.WorkspaceMember;
+import com.boardly.data.model.sql.authentication.User;
+import com.boardly.data.model.sql.board.Board;
+import com.boardly.data.model.sql.board.BoardInvite;
+import com.boardly.data.model.sql.board.BoardMember;
+import com.boardly.data.model.sql.workspace.WorkspaceMember;
 import com.boardly.data.repository.*;
 import com.boardly.exception.BadRequestException;
 import com.boardly.exception.ForbiddenException;
@@ -76,6 +74,11 @@ public class BoardMembershipService {
                 throw new ForbiddenException("You are the last Admin. You must promote another member to Admin before you can leave.");
             }
         }
+        if (workspaceMemberRepository.existsByWorkspace_IdAndUser_IdAndRole(member.getBoard().getWorkspace().getId(), appUserDetails.getUserId(), WorkspaceRole.GUEST)) {
+            if (boardMemberRepository.countByWorkspace_IdAndUser_Id(member.getBoard().getWorkspace().getId(), appUserDetails.getUserId()) <= 1) {
+                workspaceMemberRepository.deleteByWorkspace_IdAndUser_Id(member.getBoard().getWorkspace().getId(), appUserDetails.getUserId());
+            }
+        }
         boardMemberRepository.delete(member);
     }
 
@@ -92,12 +95,17 @@ public class BoardMembershipService {
                 throw new ForbiddenException("Cannot remove the last Admin. You must promote another member to Admin before you can remove them.");
             }
         }
+        if (workspaceMemberRepository.existsByWorkspace_IdAndUser_IdAndRole(memberToRemove.getBoard().getWorkspace().getId(), memberToRemove.getId(), WorkspaceRole.GUEST)) {
+            if (boardMemberRepository.countByWorkspace_IdAndUser_Id(memberToRemove.getBoard().getWorkspace().getId(), memberToRemove.getUser().getId()) <= 1) {
+                workspaceMemberRepository.deleteByWorkspace_IdAndUser_Id(memberToRemove.getBoard().getWorkspace().getId(), memberToRemove.getUser().getId());
+            }
+        }
         boardMemberRepository.delete(memberToRemove);
     }
 
     @Transactional
-    public void changeBoardMemberRole(UUID boardId, UUID memberId, BoardChangeRoleDTO boardChangeRoleDTO) {
-        BoardRole newRole = boardChangeRoleDTO.getRole();
+    public void changeBoardMemberRole(UUID boardId, UUID memberId, BoardChangeRoleRequestDTO boardChangeRoleRequestDTO) {
+        BoardRole newRole = boardChangeRoleRequestDTO.getRole();
         BoardMember targetMember = boardMemberRepository.findByBoard_IdAndUser_Id(boardId, memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
         if (targetMember.getRole() == BoardRole.ADMIN && newRole != BoardRole.ADMIN) {
@@ -116,15 +124,16 @@ public class BoardMembershipService {
         }
         return boardMemberRepository.findAllByBoard_Id(boardId).stream()
                 .map(member -> new BoardMemberDTO(
-                        boardId,
                         userMapper.toDTO(member.getUser()),
                         member.getRole(),
                         member.getCreatedAt()
                 )).collect(Collectors.toList());
     }
 
+    // For workspace members
     @Transactional
-    public BoardMemberDTO addWorkspaceMemberToBoard(UUID boardId, UUID userId) {
+    public BoardMemberDTO addWorkspaceMemberToBoard(UUID boardId, BoardAddWSMemberRequestDTO boardAddWSMemberRequestDTO) {
+        UUID userId = boardAddWSMemberRequestDTO.getUserId();
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
         User user = userRepository.findById(userId)
@@ -143,7 +152,6 @@ public class BoardMembershipService {
         boardMemberRepository.save(newMember);
 
         return new BoardMemberDTO(
-                boardId,
                 userMapper.toDTO(user),
                 newMember.getRole(),
                 newMember.getCreatedAt()
@@ -152,7 +160,8 @@ public class BoardMembershipService {
 
     // For non-workspace members
     @Transactional
-    public BoardInviteDTO inviteToBoard(UUID boardId, String email, AppUserDetails appUserDetails) {
+    public BoardInviteDTO inviteToBoard(UUID boardId, BoardInviteRequestDTO boardInviteRequestDTO, AppUserDetails appUserDetails) {
+        String email = boardInviteRequestDTO.getEmail();
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
         User userToInvite = userRepository.findByEmail(email)
@@ -164,6 +173,24 @@ public class BoardMembershipService {
 
         if (boardInviteRepository.existsByBoard_IdAndInvitee_IdAndStatus(boardId, userToInvite.getId(), InviteStatus.PENDING)) {
             throw new BadRequestException("User already has a pending invitation");
+        }
+
+        boolean workspaceMember = workspaceMemberRepository.existsByWorkspaceAndUser(board.getWorkspace(), userToInvite);
+        if (workspaceMember) {
+            BoardMember newMember = new BoardMember();
+            newMember.setBoard(board);
+            newMember.setUser(userToInvite);
+            newMember.setRole(BoardRole.MEMBER);
+            boardMemberRepository.save(newMember);
+            return new BoardInviteDTO(
+                    null,
+                    board.getId(),
+                    board.getTitle(),
+                    userMapper.toDTO(appUserDetails.getUser()),
+                    userMapper.toDTO(userToInvite),
+                    InviteStatus.ACCEPTED,
+                    null
+            );
         }
 
         BoardInvite invite = new BoardInvite();
@@ -178,8 +205,8 @@ public class BoardMembershipService {
                 invite.getId(),
                 board.getId(),
                 board.getTitle(),
-                userMapper.toDTO(userToInvite),
                 userMapper.toDTO(appUserDetails.getUser()),
+                userMapper.toDTO(userToInvite),
                 invite.getStatus(),
                 invite.getExpiresAt()
         );
@@ -187,16 +214,11 @@ public class BoardMembershipService {
 
 
     public List<BoardInviteDTO> getBoardPendingInvites(UUID boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
-
         return boardInviteRepository.findAllByBoard_IdAndStatus(boardId, InviteStatus.PENDING).stream()
                 .map(invite -> new BoardInviteDTO(
                         invite.getId(),
-                        invite.getBoard().getId(),
-                        board.getTitle(),
-                        userMapper.toDTO(invite.getInvitee()),
                         userMapper.toDTO(invite.getInviter()),
+                        userMapper.toDTO(invite.getInvitee()),
                         invite.getStatus(),
                         invite.getExpiresAt()
                 )).collect(Collectors.toList());
@@ -208,7 +230,7 @@ public class BoardMembershipService {
                         invite.getId(),
                         invite.getBoard().getId(),
                         invite.getBoard().getTitle(),
-                        userMapper.toDTO(invite.getInvitee()),
+                        userMapper.toDTO(invite.getInviter()),
                         invite.getStatus(),
                         invite.getExpiresAt()
                 )).collect(Collectors.toList());
@@ -239,11 +261,13 @@ public class BoardMembershipService {
         newMember.setRole(BoardRole.MEMBER);
         boardMemberRepository.save(newMember);
 
-        WorkspaceMember newWorkspaceMember = new WorkspaceMember();
-        newWorkspaceMember.setWorkspace(invite.getBoard().getWorkspace());
-        newWorkspaceMember.setUser(invite.getInvitee());
-        newWorkspaceMember.setRole(WorkspaceRole.GUEST);
-        workspaceMemberRepository.save(newWorkspaceMember);
+        if (!workspaceMemberRepository.existsByWorkspaceAndUser(invite.getBoard().getWorkspace(), invite.getInvitee())) {
+            WorkspaceMember newWorkspaceMember = new WorkspaceMember();
+            newWorkspaceMember.setWorkspace(invite.getBoard().getWorkspace());
+            newWorkspaceMember.setUser(invite.getInvitee());
+            newWorkspaceMember.setRole(WorkspaceRole.GUEST);
+            workspaceMemberRepository.save(newWorkspaceMember);
+        }
 
         invite.setStatus(InviteStatus.ACCEPTED);
         boardInviteRepository.save(invite);
@@ -257,6 +281,17 @@ public class BoardMembershipService {
             throw new BadRequestException("Invitation is not pending");
         }
         invite.setStatus(InviteStatus.DECLINED);
+        boardInviteRepository.save(invite);
+    }
+
+    @Transactional
+    public void cancelBoardInvitation(UUID inviteId) {
+        BoardInvite invite = boardInviteRepository.findById(inviteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid Invitation"));
+        if (invite.getStatus() != InviteStatus.PENDING) {
+            throw new BadRequestException("Invitation is not pending");
+        }
+        invite.setStatus(InviteStatus.CANCELED);
         boardInviteRepository.save(invite);
     }
 }

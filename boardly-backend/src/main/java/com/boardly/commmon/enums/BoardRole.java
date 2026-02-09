@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum BoardRole {
     ADMIN("admin"),
     MEMBER("member"),
-    OBSERVER("observer");
+    OBSERVER("observer"),
+    VIWER("viewer");
 
     BoardRole(String value) {
         this.value = value;

@@ -1,4 +1,4 @@
-package com.boardly.data.model;
+package com.boardly.data.model.sql;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

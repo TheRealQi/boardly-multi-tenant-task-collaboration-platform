@@ -1,7 +1,6 @@
 package com.boardly.commmon.dto.board;
 
 import com.boardly.commmon.enums.BoardRole;
-import com.boardly.commmon.enums.WorkspaceRole;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class BoardChangeRoleDTO {
+public class BoardChangeRoleRequestDTO {
     @NotNull(message = "New role is required")
     private BoardRole role;
 }

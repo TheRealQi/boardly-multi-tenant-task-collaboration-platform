@@ -8,15 +8,14 @@ import com.boardly.commmon.dto.workspace.WorkspaceMemberDTO;
 import com.boardly.commmon.enums.InviteStatus;
 import com.boardly.commmon.enums.WorkspaceRole;
 import com.boardly.data.mapper.UserMapper;
-import com.boardly.data.model.authentication.User;
-import com.boardly.data.model.workspace.Workspace;
-import com.boardly.data.model.workspace.WorkspaceInvite;
-import com.boardly.data.model.workspace.WorkspaceMember;
-import com.boardly.data.repository.UserRepository;
-import com.boardly.data.repository.WorkspaceInviteRepository;
-import com.boardly.data.repository.WorkspaceMemberRepository;
-import com.boardly.data.repository.WorkspaceRepository;
+import com.boardly.data.mapper.WorkspaceMapper;
+import com.boardly.data.model.sql.authentication.User;
+import com.boardly.data.model.sql.workspace.Workspace;
+import com.boardly.data.model.sql.workspace.WorkspaceInvite;
+import com.boardly.data.model.sql.workspace.WorkspaceMember;
+import com.boardly.data.repository.*;
 import com.boardly.exception.BadRequestException;
+import com.boardly.exception.ConflictException;
 import com.boardly.exception.ForbiddenException;
 import com.boardly.exception.ResourceNotFoundException;
 import com.boardly.security.model.AppUserDetails;
@@ -36,13 +35,32 @@ public class WorkspaceMembershipService {
     private final UserRepository userRepository;
     private final WorkspaceInviteRepository workspaceInviteRepository;
     private final UserMapper userMapper;
+    private final WorkspaceMapper workspaceMapper;
+    private final BoardMemberRepository boardMemberRepository;
 
-    public WorkspaceMembershipService(WorkspaceRepository workspaceRepository, WorkspaceMemberRepository workspaceMemberRepository, UserRepository userRepository, WorkspaceInviteRepository workspaceInviteRepository, UserMapper userMapper) {
+    public WorkspaceMembershipService(WorkspaceRepository workspaceRepository, WorkspaceMemberRepository workspaceMemberRepository, UserRepository userRepository, WorkspaceInviteRepository workspaceInviteRepository, UserMapper userMapper, WorkspaceMapper workspaceMapper, BoardMemberRepository boardMemberRepository) {
         this.workspaceRepository = workspaceRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.userRepository = userRepository;
         this.workspaceInviteRepository = workspaceInviteRepository;
         this.userMapper = userMapper;
+        this.workspaceMapper = workspaceMapper;
+        this.boardMemberRepository = boardMemberRepository;
+    }
+
+
+    public List<WorkspaceMemberDTO> getWorkspaceMembers(UUID workspaceId) {
+        return workspaceMemberRepository.findAllByWorkspace_Id(workspaceId).stream()
+                .map(member -> {
+                    UserDTO userDTO = new UserDTO(
+                            member.getUser().getId(),
+                            member.getUser().getUsername(),
+                            member.getUser().getFirstName(),
+                            member.getUser().getLastName(),
+                            member.getUser().getProfilePictureUri()
+                    );
+                    return new WorkspaceMemberDTO(userDTO, member.getRole(), member.getCreatedAt());
+                }).collect(Collectors.toList());
     }
 
     @Transactional
@@ -63,13 +81,12 @@ public class WorkspaceMembershipService {
         User userToInvite = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User with email " + email + " not found"));
 
         if (workspaceMemberRepository.existsByWorkspace_IdAndUser_Id(workspaceId, userToInvite.getId())) {
-            throw new BadRequestException("User is already a member of this workspace");
+            throw new ConflictException("User is already a member of this workspace");
         }
 
         if (workspaceInviteRepository.existsByWorkspace_IdAndInvitee_IdAndStatus(workspaceId, userToInvite.getId(), InviteStatus.PENDING)) {
-            throw new BadRequestException("User already has a pending invitation");
+            throw new ConflictException("User already has a pending invitation");
         }
-
 
         WorkspaceInvite invite = new WorkspaceInvite();
         invite.setWorkspace(workspace);
@@ -83,13 +100,13 @@ public class WorkspaceMembershipService {
         UserDTO inviteeDTO = userMapper.toDTO(userToInvite);
         UserDTO inviterDTO = userMapper.toDTO(appUserDetails.getUser());
 
-        return new WorkspaceInviteDTO(invite.getId(), workspace.getId(), workspace.getTitle(), inviteeDTO, inviterDTO, invite.getStatus(), invite.getExpiresAt());
+        return new WorkspaceInviteDTO(invite.getId(), workspaceMapper.toDto(workspace, null), inviteeDTO, inviterDTO, invite.getStatus(), invite.getExpiresAt());
     }
 
     @Transactional
     public void removeMemberFromWorkspace(UUID workspaceId, UUID memberId, AppUserDetails appUserDetails) {
         if (memberId.equals(appUserDetails.getUserId())) {
-            throw new BadRequestException("Use leave workspace endpoint to leave the workspace.");
+            throw new BadRequestException("Cannot remove yourself. Use leave workspace instead.");
         }
         WorkspaceMember memberToRemove = workspaceMemberRepository.findByWorkspace_IdAndUser_Id(workspaceId, memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
@@ -97,6 +114,7 @@ public class WorkspaceMembershipService {
             throw new ForbiddenException("Cannot remove the workspace owner.");
         }
         workspaceMemberRepository.delete(memberToRemove);
+        boardMemberRepository.deleteAllByWorkspaceIdAndUserId(workspaceId, memberId);
     }
 
     @Transactional
@@ -116,7 +134,7 @@ public class WorkspaceMembershipService {
         }
 
         if (workspaceMemberRepository.existsByWorkspace_IdAndUser_Id(invite.getWorkspace().getId(), appUserDetails.getUserId())) {
-            throw new BadRequestException("You are already a member of this workspace");
+            throw new ConflictException("You are already a member of this workspace");
         }
 
         WorkspaceMember newMember = new WorkspaceMember();
@@ -142,10 +160,21 @@ public class WorkspaceMembershipService {
 
 
         if (invite.getStatus() != InviteStatus.PENDING) {
-            throw new BadRequestException("Invitation is not pending");
+            throw new ConflictException("Invitation is not pending");
         }
 
         invite.setStatus(InviteStatus.DECLINED);
+        workspaceInviteRepository.save(invite);
+    }
+
+    @Transactional
+    public void cancelBoardInvitation(UUID inviteId) {
+        WorkspaceInvite invite = workspaceInviteRepository.findById(inviteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid Invitation"));
+        if (invite.getStatus() != InviteStatus.PENDING) {
+            throw new BadRequestException("Invitation is not pending");
+        }
+        invite.setStatus(InviteStatus.CANCELED);
         workspaceInviteRepository.save(invite);
     }
 
@@ -173,7 +202,7 @@ public class WorkspaceMembershipService {
     @Transactional
     public WorkspaceMemberDTO transferWorkspaceOwnership(UUID workspaceId, UUID newOwnerId, AppUserDetails currentUser) {
         WorkspaceMember currentOwner = workspaceMemberRepository.findByWorkspace_IdAndUser_Id(workspaceId, currentUser.getUserId())
-                .orElseThrow(() -> new ForbiddenException("You are not a member of this workspace"));
+                .orElseThrow(() -> new ForbiddenException("Workspace not found or you are not a member of this workspace"));
 
         if (currentOwner.getRole() != WorkspaceRole.OWNER) {
             throw new ForbiddenException("Only the Owner can transfer ownership.");
@@ -193,13 +222,22 @@ public class WorkspaceMembershipService {
     }
 
     public List<WorkspaceInviteDTO> getUserPendingWorkspaceInvites(AppUserDetails currentUser) {
-
-        return workspaceInviteRepository.findAllByInvitee_IdAndStatus(currentUser.getUserId(), InviteStatus.PENDING).stream()
+        return workspaceInviteRepository.findAllByInviteeAndStatus(currentUser.getUser(), InviteStatus.PENDING).stream()
                 .map(invite -> new WorkspaceInviteDTO(
                         invite.getId(),
-                        invite.getWorkspace().getId(),
-                        invite.getWorkspace().getTitle(),
-                        userMapper.toDTO(invite.getInviter()),
+                        new WorkspaceDTO(
+                                invite.getWorkspace().getId(),
+                                invite.getWorkspace().getTitle(),
+                                invite.getWorkspace().getDescription(),
+                                null
+                        ),
+                        new UserDTO(
+                                invite.getInviter().getId(),
+                                invite.getInviter().getUsername(),
+                                invite.getInviter().getFirstName(),
+                                invite.getInviter().getLastName(),
+                                invite.getInviter().getProfilePictureUri()
+                        ),
                         invite.getStatus(),
                         invite.getExpiresAt()
                 )).collect(Collectors.toList());
@@ -211,10 +249,20 @@ public class WorkspaceMembershipService {
         return workspaceInviteRepository.findAllByWorkspace_IdAndStatus(workspaceId, InviteStatus.PENDING).stream()
                 .map(invite -> new WorkspaceInviteDTO(
                         invite.getId(),
-                        invite.getWorkspace().getId(),
-                        workspace.getTitle(),
-                        userMapper.toDTO(invite.getInvitee()),
-                        userMapper.toDTO(invite.getInviter()),
+                        new UserDTO(
+                                invite.getInvitee().getId(),
+                                invite.getInvitee().getUsername(),
+                                invite.getInvitee().getFirstName(),
+                                invite.getInvitee().getLastName(),
+                                invite.getInvitee().getProfilePictureUri()
+                        ),
+                        new UserDTO(
+                                invite.getInviter().getId(),
+                                invite.getInviter().getUsername(),
+                                invite.getInviter().getFirstName(),
+                                invite.getInviter().getLastName(),
+                                invite.getInviter().getProfilePictureUri()
+                        ),
                         invite.getStatus(),
                         invite.getExpiresAt()
                 )).collect(Collectors.toList());

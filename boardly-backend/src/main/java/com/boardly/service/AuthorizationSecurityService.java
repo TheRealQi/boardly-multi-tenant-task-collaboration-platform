@@ -4,8 +4,8 @@ import com.boardly.commmon.enums.BoardCreationSetting;
 import com.boardly.commmon.enums.BoardRole;
 import com.boardly.commmon.enums.BoardVisibility;
 import com.boardly.commmon.enums.WorkspaceRole;
-import com.boardly.data.model.board.Board;
-import com.boardly.data.model.workspace.Workspace;
+import com.boardly.data.model.sql.board.Board;
+import com.boardly.data.model.sql.workspace.Workspace;
 import com.boardly.data.repository.BoardMemberRepository;
 import com.boardly.data.repository.BoardRepository;
 import com.boardly.data.repository.WorkspaceMemberRepository;
@@ -52,13 +52,15 @@ public class AuthorizationSecurityService {
     private WorkspaceRole getCurrentUserWorkspaceRole(UUID workspaceId) {
         return workspaceMemberRepository
                 .findRoleByWorkspaceIdAndUserId(workspaceId, getCurrentUserId())
-                .orElseThrow(() ->
-                        new ForbiddenException("You are not a member of this workspace"));
+                .orElseThrow(() -> new ForbiddenException("Workspace not found or you are not a member of this workspace."));
     }
 
     public boolean isWorkspaceMember(UUID workspaceId) {
-        return workspaceMemberRepository
-                .existsByWorkspace_IdAndUser_Id(workspaceId, getCurrentUserId());
+        boolean isMember = workspaceMemberRepository.existsByWorkspace_IdAndUser_Id(workspaceId, getCurrentUserId());
+        if (!isMember) {
+            throw new ForbiddenException("Workspace not found or you are not a member of this workspace.");
+        }
+        return true;
     }
 
     public boolean canDeleteWorkspace(UUID workspaceId) {
@@ -160,7 +162,13 @@ public class AuthorizationSecurityService {
         throw new ForbiddenException("You are not allowed to delete this board.");
     }
 
-    public boolean canViewBoard(UUID workspaceId, UUID boardId) {
+    public boolean canViewBoard(UUID boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found."));
+
+        Workspace workspace = board.getWorkspace();
+        UUID workspaceId = workspace.getId();
+
         if (isBoardMember(boardId)) {
             return true;
         }
@@ -169,9 +177,6 @@ public class AuthorizationSecurityService {
         if (workspaceRole == WorkspaceRole.OWNER || workspaceRole == WorkspaceRole.ADMIN) {
             return true;
         }
-
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Board not found."));
 
         if (board.getBoardVisibility() == BoardVisibility.WORKSPACE
                 && workspaceRole != WorkspaceRole.GUEST) {
@@ -247,9 +252,6 @@ public class AuthorizationSecurityService {
     }
 
     public boolean canJoinBoard(UUID boardId) {
-        if (isBoardMember(boardId)) {
-            throw new ForbiddenException("You are already a member of this board.");
-        }
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Board not found."));
         UUID workspaceId = board.getWorkspace().getId();

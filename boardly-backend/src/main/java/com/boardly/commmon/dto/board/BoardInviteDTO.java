@@ -2,6 +2,7 @@ package com.boardly.commmon.dto.board;
 
 import com.boardly.commmon.dto.UserDTO;
 import com.boardly.commmon.enums.InviteStatus;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,12 +15,13 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BoardInviteDTO {
     private UUID inviteId;
     private UUID boardId;
     private String boardTitle;
     private UserDTO invitedBy;
-    private UserDTO inviteeId;
+    private UserDTO invitee;
     private InviteStatus status;
     private Instant expiresAt;
 
@@ -31,4 +33,14 @@ public class BoardInviteDTO {
         this.status = status;
         this.expiresAt = expiresAt;
     }
+
+    public BoardInviteDTO(UUID inviteId, UserDTO invitedBy, UserDTO invitee, InviteStatus status, Instant expiresAt) {
+        this.inviteId = inviteId;
+        this.invitedBy = invitedBy;
+        this.invitee = invitee;
+        this.status = status;
+        this.expiresAt = expiresAt;
+    }
+
+
 }

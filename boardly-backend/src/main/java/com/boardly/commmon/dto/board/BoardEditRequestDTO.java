@@ -7,13 +7,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BoardEditDTO {
+public class BoardEditRequestDTO {
     @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
     @NotBlank(message = "Title is required")
     private String title;

@@ -1,8 +1,8 @@
-package com.boardly.data.model.workspace;
+package com.boardly.data.model.sql.workspace;
 
 
-import com.boardly.data.model.BaseEntity;
-import com.boardly.data.model.board.Board;
+import com.boardly.data.model.sql.BaseEntity;
+import com.boardly.data.model.sql.board.Board;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

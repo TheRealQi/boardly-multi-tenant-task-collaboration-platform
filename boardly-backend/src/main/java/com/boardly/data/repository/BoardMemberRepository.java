@@ -1,7 +1,7 @@
 package com.boardly.data.repository;
 
 import com.boardly.commmon.enums.BoardRole;
-import com.boardly.data.model.board.BoardMember;
+import com.boardly.data.model.sql.board.BoardMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,10 +19,7 @@ public interface BoardMemberRepository extends JpaRepository<BoardMember, UUID> 
                 WHERE bm.board.Id = :boardId
                   AND bm.user.Id = :userId
             """)
-    Optional<BoardRole> findRoleByBoardIdAndUserId(
-            @Param("boardId") UUID boardId,
-            @Param("userId") UUID userId
-    );
+    Optional<BoardRole> findRoleByBoardIdAndUserId(@Param("boardId") UUID boardId, @Param("userId") UUID userId);
 
     boolean existsByBoard_IdAndUser_Id(UUID boardId, UUID userId);
 
@@ -33,4 +30,20 @@ public interface BoardMemberRepository extends JpaRepository<BoardMember, UUID> 
     long countByBoard_Id(UUID boardId);
 
     long countByBoard_IdAndRole(UUID boardId, BoardRole role);
+
+    @Query("""
+                DELETE FROM BoardMember bm
+                WHERE bm.board.workspace.Id = :workspaceId
+                  AND bm.user.Id = :userId
+            """)
+    void deleteAllByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);
+
+
+    @Query("""
+                SELECT COUNT(bm)
+                FROM BoardMember bm
+                WHERE bm.board.workspace.Id = :workspaceId
+                  AND bm.user.Id = :userId
+    """)
+    long countByWorkspace_IdAndUser_Id(UUID workspaceId, UUID userId);
 }

@@ -1,9 +1,8 @@
-package com.boardly.data.model.board;
+package com.boardly.data.model.sql.workspace;
 
 import com.boardly.commmon.enums.InviteStatus;
-import com.boardly.data.model.BaseEntity;
-import com.boardly.data.model.authentication.User;
-import com.boardly.data.model.workspace.Workspace;
+import com.boardly.data.model.sql.BaseEntity;
+import com.boardly.data.model.sql.authentication.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,17 +10,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Entity
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BoardInvite extends BaseEntity {
+public class WorkspaceInvite extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "board_id")
-    private Board board;
+    @JoinColumn(name = "workspace_id")
+    private Workspace workspace;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "invitee_id")
@@ -37,4 +35,5 @@ public class BoardInvite extends BaseEntity {
 
     @Column(nullable = false)
     private Instant expiresAt;
+
 }

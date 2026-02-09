@@ -1,5 +1,6 @@
 package com.boardly.commmon.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @Setter
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiSuccessResponseDTO<T> {
     private int statusCode;
     private String status = "success";

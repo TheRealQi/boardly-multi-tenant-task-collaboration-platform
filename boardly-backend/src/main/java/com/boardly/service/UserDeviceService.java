@@ -1,7 +1,7 @@
 package com.boardly.service;
 
-import com.boardly.data.model.authentication.User;
-import com.boardly.data.model.authentication.UserDevice;
+import com.boardly.data.model.sql.authentication.User;
+import com.boardly.data.model.sql.authentication.UserDevice;
 import com.boardly.data.repository.UserDeviceRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,8 +1,9 @@
 package com.boardly.data.repository;
 
 import com.boardly.commmon.enums.WorkspaceRole;
-import com.boardly.data.model.authentication.User;
-import com.boardly.data.model.workspace.WorkspaceMember;
+import com.boardly.data.model.sql.authentication.User;
+import com.boardly.data.model.sql.workspace.Workspace;
+import com.boardly.data.model.sql.workspace.WorkspaceMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,8 +28,13 @@ public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember
     );
 
     boolean existsByWorkspace_IdAndUser_Id(UUID workspaceId, UUID userId);
-
-    List<WorkspaceMember> findAllByUser(User user);
+    boolean existsByWorkspaceAndUser(Workspace workspace, User user);
 
     Optional<WorkspaceMember> findByWorkspace_IdAndUser_Id(UUID workspaceId, UUID userId);
+
+    List<WorkspaceMember> findAllByWorkspace_Id(UUID workspaceId);
+
+    boolean existsByWorkspace_IdAndUser_IdAndRole(UUID workspaceId, UUID userId, WorkspaceRole role);
+
+    void deleteByWorkspace_IdAndUser_Id(UUID workspaceId, UUID userId);
 }

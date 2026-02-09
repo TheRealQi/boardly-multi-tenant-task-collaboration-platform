@@ -1,4 +1,4 @@
-package com.boardly.data.model.workspace;
+package com.boardly.data.model.sql.workspace;
 
 import com.boardly.commmon.enums.BoardCreationSetting;
 import jakarta.persistence.Embeddable;

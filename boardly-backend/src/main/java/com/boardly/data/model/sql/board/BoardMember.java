@@ -1,8 +1,8 @@
-package com.boardly.data.model.board;
+package com.boardly.data.model.sql.board;
 
 import com.boardly.commmon.enums.BoardRole;
-import com.boardly.data.model.BaseEntity;
-import com.boardly.data.model.authentication.User;
+import com.boardly.data.model.sql.BaseEntity;
+import com.boardly.data.model.sql.authentication.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

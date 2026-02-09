@@ -1,10 +1,10 @@
-package com.boardly.data.model.authentication;
+package com.boardly.data.model.sql.authentication;
 
-import com.boardly.data.model.BaseEntity;
-import com.boardly.data.model.board.BoardInvite;
-import com.boardly.data.model.board.BoardMember;
-import com.boardly.data.model.workspace.WorkspaceInvite;
-import com.boardly.data.model.workspace.WorkspaceMember;
+import com.boardly.data.model.sql.BaseEntity;
+import com.boardly.data.model.sql.board.BoardInvite;
+import com.boardly.data.model.sql.board.BoardMember;
+import com.boardly.data.model.sql.workspace.WorkspaceInvite;
+import com.boardly.data.model.sql.workspace.WorkspaceMember;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -20,17 +20,23 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WorkspaceInviteDTO {
     private UUID inviteId;
-    private UUID workspaceId;
-    private String workspaceTitle;
+    private WorkspaceDTO workspace;
     private UserDTO invitee;
     private UserDTO inviter;
     private InviteStatus status;
     private Instant expiresAt;
 
-    public WorkspaceInviteDTO(UUID inviteId, UUID workspaceId, String workspaceTitle, UserDTO inviter, InviteStatus status, Instant expiresAt) {
+    public WorkspaceInviteDTO(UUID inviteId, WorkspaceDTO workspace, UserDTO inviter, InviteStatus status, Instant expiresAt) {
         this.inviteId = inviteId;
-        this.workspaceId = workspaceId;
-        this.workspaceTitle = workspaceTitle;
+        this.workspace = workspace;
+        this.inviter = inviter;
+        this.status = status;
+        this.expiresAt = expiresAt;
+    }
+
+    public WorkspaceInviteDTO(UUID inviteId, UserDTO invitee, UserDTO inviter, InviteStatus status, Instant expiresAt) {
+        this.inviteId = inviteId;
+        this.invitee = invitee;
         this.inviter = inviter;
         this.status = status;
         this.expiresAt = expiresAt;

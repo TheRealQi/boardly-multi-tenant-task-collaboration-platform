@@ -1,12 +1,12 @@
-package com.boardly.commmon.dto.workspace;
+package com.boardly.commmon.dto.kanbanboard;
 
-import com.boardly.commmon.enums.WorkspaceRole;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.UUID;
 
 @Setter
@@ -14,9 +14,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class WorkspaceDTO {
-    private UUID workspaceId;
+public class KanbanListDTO {
+    private UUID listId;
     private String title;
-    private String description;
-    private WorkspaceRole role;
+    private double position;
+    private List<KanbanCardDTO> cards;
 }
