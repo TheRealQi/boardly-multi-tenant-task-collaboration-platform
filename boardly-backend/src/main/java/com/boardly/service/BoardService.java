@@ -28,14 +28,16 @@ public class BoardService {
     private final BoardMapper boardMapper;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMapper workspaceMapper;
+    private final KanbanBoardService kanbanBoardService;
 
-    public BoardService(BoardRepository boardRepository, BoardMemberRepository boardMemberRepository, WorkspaceMemberRepository workspaceMemberRepository, BoardMapper boardMapper, WorkspaceRepository workspaceRepository, WorkspaceMapper workspaceMapper) {
+    public BoardService(BoardRepository boardRepository, BoardMemberRepository boardMemberRepository, WorkspaceMemberRepository workspaceMemberRepository, BoardMapper boardMapper, WorkspaceRepository workspaceRepository, WorkspaceMapper workspaceMapper, KanbanBoardService kanbanBoardService) {
         this.boardRepository = boardRepository;
         this.boardMemberRepository = boardMemberRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.boardMapper = boardMapper;
         this.workspaceRepository = workspaceRepository;
         this.workspaceMapper = workspaceMapper;
+        this.kanbanBoardService = kanbanBoardService;
     }
 
     @Transactional
@@ -55,6 +57,8 @@ public class BoardService {
 
         WorkspaceDTO workspaceDTO = workspaceRepository.findWorkspaceDTOByWorkspaceAndUser(board.getWorkspace(), appUserDetails.getUser()).orElseThrow(() -> new ResourceNotFoundException("Workspace doesnt exist or user is not a member of the workspace"));
 
+        kanbanBoardService.createBoard(savedBoard.getId());
+
         return boardMapper.toDto(savedBoard, boardMember.getRole(), workspaceDTO);
     }
 
@@ -63,6 +67,7 @@ public class BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
         boardRepository.delete(board);
+        kanbanBoardService.deleteBoard(boardId);
     }
 
     public BoardDTO getBoard(UUID boardId, AppUserDetails appUserDetails) {

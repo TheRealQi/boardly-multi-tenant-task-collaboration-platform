@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -33,12 +35,12 @@ public class KanbanCard {
     private UUID listId;
 
     private String title;
-    private String description;
+    private String description = "";
 
-    private long position;
+    private double position;
 
-    private Instant startDate;
-    private Instant dueDate;
+    private Instant startDate = null;
+    private Instant dueDate = null;
 
     private Set<UUID> assignedMembers = new HashSet<>();
 
@@ -47,6 +49,9 @@ public class KanbanCard {
     private List<Checklist> checklists = new ArrayList<>();
     private List<Comment> comments = new ArrayList<>();
 
+    @CreatedDate
     private Instant createdAt;
+
+    @LastModifiedDate
     private Instant updatedAt;
 }

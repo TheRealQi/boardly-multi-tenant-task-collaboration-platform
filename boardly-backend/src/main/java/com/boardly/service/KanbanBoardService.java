@@ -8,7 +8,7 @@ import com.boardly.data.model.nosql.KanbanList;
 import com.boardly.data.repository.KanbanBoardRepository;
 import com.boardly.data.repository.KanbanCardRepository;
 import com.boardly.exception.ResourceNotFoundException;
-import com.boardly.security.model.AppUserDetails;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -31,6 +31,7 @@ public class KanbanBoardService {
         kanbanBoardRepository.save(kanbanBoard);
     }
 
+    @Async
     public void deleteBoard(UUID boardId) {
         kanbanCardRepository.deleteAllByBoardId(boardId);
         kanbanBoardRepository.deleteByBoardId(boardId);
@@ -40,6 +41,7 @@ public class KanbanBoardService {
     public KanbanBoardDTO getBoard(UUID boardId) {
         KanbanBoard kanbanBoard = kanbanBoardRepository.findByBoardId(boardId).orElseThrow(
                 () -> new ResourceNotFoundException("Board not found"));
+
         KanbanBoardDTO kanbanBoardDTO = new KanbanBoardDTO();
         kanbanBoardDTO.setBoardId(kanbanBoard.getBoardId());
         List<KanbanCardDTO> kanbanCardDTOs = kanbanCardRepository.findAllByBoardId(boardId)
@@ -62,17 +64,23 @@ public class KanbanBoardService {
                     kanbanListDTO.setListId(list.getId());
                     kanbanListDTO.setTitle(list.getTitle());
                     kanbanListDTO.setPosition(list.getPosition());
-                    kanbanListDTO.setCards(kanbanCardDTOMap.getOrDefault(list.getId(), new ArrayList<>()));
+                    List<KanbanCardDTO> cards = kanbanCardDTOMap
+                            .getOrDefault(list.getId(), new ArrayList<>());
+                    cards.sort(Comparator.comparingDouble(KanbanCardDTO::getPosition));
+                    kanbanListDTO.setCards(cards);
                     return kanbanListDTO;
-                }).toList();
+                })
+                .sorted(Comparator.comparingDouble(KanbanListDTO::getPosition))
+                .toList();
 
         kanbanBoardDTO.setLists(kanbanListDTOs);
+
         return kanbanBoardDTO;
     }
 
     // List operations
 
-    public void addList(UUID boardId, KanbanListCreationRequestDTO kanbanListCreationRequestDTO) {
+    public KanbanListDTO createList(UUID boardId, KanbanListCreationRequestDTO kanbanListCreationRequestDTO) {
         KanbanBoard kanbanBoard = kanbanBoardRepository.findByBoardId(boardId).orElseThrow(
                 () -> new ResourceNotFoundException("Board not found"));
         KanbanList kanbanList = new KanbanList();
@@ -81,56 +89,82 @@ public class KanbanBoardService {
         kanbanList.setPosition(kanbanListCreationRequestDTO.getPosition());
         kanbanBoard.getLists().add(kanbanList);
         kanbanBoardRepository.save(kanbanBoard);
+
+        boolean collision = isPositionCollision(kanbanBoard.getLists(), kanbanList.getPosition());
+        if (collision || kanbanList.getPosition() <= 0.125) {
+            rebalancePositions(kanbanBoard.getLists());
+            kanbanBoardRepository.save(kanbanBoard);
+            KanbanList list = kanbanBoard.getLists().stream()
+                    .filter(l -> l.getId().equals(kanbanList.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("List not found after rebalancing"));
+            kanbanList.setPosition(list.getPosition());
+        }
+
+        KanbanListDTO kanbanListDTO = new KanbanListDTO();
+        kanbanListDTO.setListId(kanbanList.getId());
+        kanbanListDTO.setTitle(kanbanList.getTitle());
+        kanbanListDTO.setPosition(kanbanList.getPosition());
+        kanbanListDTO.setCards(new ArrayList<>());
+        return kanbanListDTO;
     }
 
-    public void editListTitle(UUID boardId, UUID listId, KanbanListUpdateRequestDTO kanbanListUpdateRequestDTO) {
-        KanbanBoard kanbanBoard = kanbanBoardRepository.findByBoardId(boardId).orElseThrow(
-                () -> new ResourceNotFoundException("Board not found"));
-        Optional<KanbanList> optionalKanbanList = kanbanBoard.getLists().stream()
-                .filter(list -> list.getId().equals(listId))
-                .findFirst();
-        if (optionalKanbanList.isEmpty()) {
-            throw new ResourceNotFoundException("List not found");
-        }
-        KanbanList kanbanList = optionalKanbanList.get();
-        kanbanList.setTitle(kanbanListUpdateRequestDTO.getTitle());
-        kanbanBoardRepository.save(kanbanBoard);
-    }
+    public KanbanListDTO updateList(UUID boardId, UUID listId, KanbanListUpdateRequestDTO kanbanListUpdateRequestDTO) {
+        KanbanBoard board = kanbanBoardRepository.findByBoardId(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
 
-    public KanbanListDTO moveList(UUID boardId, UUID listId, KanbanListMoveRequestDTO kanbanListMoveRequestDTO) {
-        if (kanbanListMoveRequestDTO.getPosition() < 1) {
-            throw new IllegalArgumentException("Position must be greater than 0");
-        }
-
-        if (kanbanListMoveRequestDTO.getPosition() > Long.MAX_VALUE) {
-            throw new IllegalArgumentException("Position must be less than " + Long.MAX_VALUE);
-        }
-
-        KanbanBoard board = kanbanBoardRepository.findByBoardId(boardId).orElseThrow(
-                () -> new ResourceNotFoundException("Board not found"));
-
-        List<KanbanList> lists = board.getLists();
-        KanbanList listToMove = lists.stream()
+        KanbanList list = board.getLists().stream()
                 .filter(l -> l.getId().equals(listId))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("List not found"));
 
-        double targetPosition = kanbanListMoveRequestDTO.getPosition();
+        if (kanbanListUpdateRequestDTO.getTitle() == null && kanbanListUpdateRequestDTO.getPosition() == null) {
+            throw new IllegalArgumentException("At least one field (title or position) must be provided for update");
+        }
 
-        boolean collision = board.getLists().stream().anyMatch(list -> !list.getId().equals(listId) && list.getPosition() == targetPosition);
-        if (collision) {
+        if (kanbanListUpdateRequestDTO.getTitle() != null) {
+            String newTitle = kanbanListUpdateRequestDTO.getTitle().trim();
+            if (newTitle.isEmpty()) {
+                throw new IllegalArgumentException("Title is required");
+            }
+            list.setTitle(newTitle);
+        }
+
+        if (kanbanListUpdateRequestDTO.getPosition() != null) {
+            moveList(board, list, kanbanListUpdateRequestDTO.getPosition());
+        }
+
+        kanbanBoardRepository.save(board);
+
+        return new KanbanListDTO(list.getId(), list.getTitle(), list.getPosition(), null);
+    }
+
+    private void moveList(KanbanBoard board, KanbanList listToMove, double targetPosition) {
+        if (targetPosition < 0) {
+            throw new IllegalArgumentException("Position must be greater than 0");
+        }
+
+        if (targetPosition > Long.MAX_VALUE) {
+            throw new IllegalArgumentException("Position must be less than " + Long.MAX_VALUE);
+        }
+
+        boolean collision = isPositionCollision(board.getLists(), targetPosition);
+        if (collision || targetPosition < 0.125) {
             rebalancePositions(board.getLists());
-            kanbanBoardRepository.save(board);
+            KanbanList list = board.getLists().stream()
+                    .filter(l -> l.getId().equals(listToMove.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("List not found after rebalancing"));
+            targetPosition = list.getPosition();
         }
 
         listToMove.setPosition(targetPosition);
-        kanbanBoardRepository.save(board);
+    }
 
-        KanbanListDTO kanbanListDTO = new KanbanListDTO();
-        kanbanListDTO.setListId(listToMove.getId());
-        kanbanListDTO.setTitle(listToMove.getTitle());
-        kanbanListDTO.setPosition(listToMove.getPosition());
-        return kanbanListDTO;
+    private boolean isPositionCollision(List<KanbanList> lists, double targetPosition) {
+        double minDistance = 0.0001;
+        return lists.stream()
+                .anyMatch(list -> Math.abs(list.getPosition() - targetPosition) < minDistance);
     }
 
     private void rebalancePositions(List<KanbanList> lists) {
@@ -155,5 +189,37 @@ public class KanbanBoardService {
     }
 
     // Card operations
+
+
+    public KanbanCardDTO createCard(UUID boardId, KanbanCardCreationRequestDTO kanbanCardCreationRequestDTO) {
+        KanbanBoard kanbanBoard = kanbanBoardRepository.findByBoardId(boardId).orElseThrow(
+                () -> new ResourceNotFoundException("Board not found"));
+
+        UUID listId = kanbanCardCreationRequestDTO.getListId();
+        KanbanList kanbanList = kanbanBoard.getLists().stream()
+                .filter(list -> list.getId().equals(listId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("List not found"));
+
+        KanbanCard kanbanCard = new KanbanCard();
+        kanbanCard.setId(UUID.randomUUID());
+        kanbanCard.setBoardId(boardId);
+        kanbanCard.setListId(listId);
+        kanbanCard.setTitle(kanbanCardCreationRequestDTO.getTitle());
+        kanbanCard.setPosition(kanbanCardCreationRequestDTO.getPosition());
+        kanbanCardRepository.save(kanbanCard);
+
+        KanbanCardDTO kanbanCardDTO = new KanbanCardDTO();
+        kanbanCardDTO.setCardId(kanbanCard.getId());
+        kanbanCardDTO.setTitle(kanbanCard.getTitle());
+        kanbanCardDTO.setListId(kanbanCard.getListId());
+        kanbanCardDTO.setPosition(kanbanCard.getPosition());
+        return kanbanCardDTO;
+    }
+
+    public KanbanCardDTO getCard(UUID boardId, UUID cardId) {}
+
+
+    // TODO: CRUD Implement assigning board members to cards, descriptions, due dates, labels, and checklists
 
 }

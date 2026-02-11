@@ -1,6 +1,5 @@
 package com.boardly.commmon.dto.kanbanboard;
 
-import com.boardly.commmon.dto.UserDTO;
 import com.boardly.data.model.nosql.Checklist;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,7 +15,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class KanbanCardDTO {
+public class KanbanCardDetailsDTO {
     private UUID cardId;
     private String title;
     private UUID listId;
@@ -26,4 +25,5 @@ public class KanbanCardDTO {
     private List<String> labels = new ArrayList<>();
     private List<Checklist> checklists = new ArrayList<>();
     private List<UUID> assignedMembers = new ArrayList<>();
+    private List<CardCommentDTO> comments = new ArrayList<>();
 }
