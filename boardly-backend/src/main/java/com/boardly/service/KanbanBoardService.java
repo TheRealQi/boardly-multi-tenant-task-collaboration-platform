@@ -217,7 +217,7 @@ public class KanbanBoardService {
         return kanbanCardDTO;
     }
 
-    public KanbanCardDTO getCard(UUID boardId, UUID cardId) {}
+//    public KanbanCardDTO getCard(UUID boardId, UUID cardId) {}
 
 
     // TODO: CRUD Implement assigning board members to cards, descriptions, due dates, labels, and checklists

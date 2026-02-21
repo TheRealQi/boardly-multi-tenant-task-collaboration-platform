@@ -2,6 +2,7 @@ package com.boardly.data.repository;
 
 import com.boardly.commmon.enums.BoardRole;
 import com.boardly.data.model.sql.board.BoardMember;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,6 +26,7 @@ public interface BoardMemberRepository extends JpaRepository<BoardMember, UUID> 
 
     Optional<BoardMember> findByBoard_IdAndUser_Id(UUID boardId, UUID userId);
 
+    @EntityGraph(attributePaths = {"user"})
     List<BoardMember> findAllByBoard_Id(UUID boardId);
 
     long countByBoard_Id(UUID boardId);

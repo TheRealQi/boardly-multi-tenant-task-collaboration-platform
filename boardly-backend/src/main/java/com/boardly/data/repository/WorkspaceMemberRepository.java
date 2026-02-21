@@ -4,6 +4,7 @@ import com.boardly.commmon.enums.WorkspaceRole;
 import com.boardly.data.model.sql.authentication.User;
 import com.boardly.data.model.sql.workspace.Workspace;
 import com.boardly.data.model.sql.workspace.WorkspaceMember;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,6 +33,7 @@ public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember
 
     Optional<WorkspaceMember> findByWorkspace_IdAndUser_Id(UUID workspaceId, UUID userId);
 
+    @EntityGraph(attributePaths = {"user"})
     List<WorkspaceMember> findAllByWorkspace_Id(UUID workspaceId);
 
     boolean existsByWorkspace_IdAndUser_IdAndRole(UUID workspaceId, UUID userId, WorkspaceRole role);

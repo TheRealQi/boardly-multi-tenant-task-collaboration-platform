@@ -83,20 +83,11 @@ public class BoardService {
     }
 
     public List<BoardDTO> getBoardsForUser(AppUserDetails appUserDetails) {
-        List<Board> boards = boardRepository.findAllByUser(appUserDetails.getUserId());
-        return boards.stream().map(board -> {
-            BoardRole boardRole = boardMemberRepository.findRoleByBoardIdAndUserId(board.getId(), appUserDetails.getUserId()).orElse(BoardRole.VIWER);
-            WorkspaceDTO workspaceDTO = workspaceRepository.findWorkspaceDTOByWorkspaceAndUser(board.getWorkspace(), appUserDetails.getUser()).orElseThrow(() -> new ResourceNotFoundException("Workspace doesnt exist or user is not a member of the workspace"));
-            return boardMapper.toDto(board, boardRole, workspaceDTO);
-        }).toList();
+        return boardRepository.findAllBoardDTOsByUser(appUserDetails.getUserId());
     }
 
     public List<BoardDTO> getBoardsForWorkspace(UUID workspaceId, AppUserDetails appUserDetails) {
-        List<Board> boards = boardRepository.findAllViewableBoardsByUserAndWorkspace(workspaceId, appUserDetails.getUserId());
-        return boards.stream().map(board -> {
-            BoardRole boardRole = boardMemberRepository.findRoleByBoardIdAndUserId(board.getId(), appUserDetails.getUserId()).orElse(BoardRole.VIWER);
-            return boardMapper.toDto(board, boardRole, null);
-        }).toList();
+        return boardRepository.findAllViewableBoardDTOsByUserAndWorkspace(workspaceId, appUserDetails.getUserId());
     }
 
     public void editBoard(UUID boardId, BoardEditRequestDTO boardEditRequestDTO, AppUserDetails appUserDetails) {
