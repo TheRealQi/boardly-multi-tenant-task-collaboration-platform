@@ -9,8 +9,8 @@ import java.util.UUID;
 @Setter
 @Getter
 public class Comment {
-    private String Id = UUID.randomUUID().toString();
-    private String authorId;
+    private UUID id = UUID.randomUUID();
+    private UUID authorId;
     private String content;
     private boolean edited = false;
     private Instant createdAt = Instant.now();

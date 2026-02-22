@@ -1,11 +1,11 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.board.BoardChangeVisibilityRequestDTO;
-import com.boardly.commmon.dto.board.BoardCreationRequestDTO;
-import com.boardly.commmon.dto.board.BoardDTO;
-import com.boardly.commmon.dto.board.BoardEditRequestDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceDTO;
-import com.boardly.commmon.enums.BoardRole;
+import com.boardly.common.dto.board.BoardChangeVisibilityRequestDTO;
+import com.boardly.common.dto.board.BoardCreationRequestDTO;
+import com.boardly.common.dto.board.BoardDTO;
+import com.boardly.common.dto.board.BoardEditRequestDTO;
+import com.boardly.common.dto.workspace.WorkspaceDTO;
+import com.boardly.common.enums.BoardRole;
 import com.boardly.data.mapper.BoardMapper;
 import com.boardly.data.mapper.WorkspaceMapper;
 import com.boardly.data.model.sql.board.Board;

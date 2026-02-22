@@ -1,6 +1,6 @@
 package com.boardly.data.model.sql.board;
 
-import com.boardly.commmon.enums.InviteStatus;
+import com.boardly.common.enums.InviteStatus;
 import com.boardly.data.model.sql.BaseEntity;
 import com.boardly.data.model.sql.authentication.User;
 import jakarta.persistence.*;
@@ -18,15 +18,15 @@ import java.time.Instant;
 @NoArgsConstructor
 public class BoardInvite extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "board_Id")
+    @JoinColumn(name = "board_id")
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "invitee_Id")
+    @JoinColumn(name = "invitee_id")
     private User invitee;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "inviter_Id")
+    @JoinColumn(name = "inviter_id")
     private User inviter;
 
     @Enumerated(EnumType.STRING)

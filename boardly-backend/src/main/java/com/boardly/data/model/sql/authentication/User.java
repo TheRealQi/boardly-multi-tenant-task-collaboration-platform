@@ -47,25 +47,24 @@ public class User extends BaseEntity {
 
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WorkspaceMember> workspaceMembers = new ArrayList<>();
+    private Set<WorkspaceMember> workspaceMembers = new HashSet<>();
 
     @OneToMany(mappedBy = "invitee", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WorkspaceInvite> workspaceInvitees = new HashSet<>();
 
     @OneToMany(mappedBy = "inviter", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WorkspaceInvite> workspaceInviters = new ArrayList<>();
+    private Set<WorkspaceInvite> workspaceInviters = new HashSet<>();
 
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BoardMember> boardMembers = new ArrayList<>();
+    private Set<BoardMember> boardMembers = new HashSet<>();
 
     @OneToMany(mappedBy = "invitee", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<BoardInvite> boardInvitees = new HashSet<>();
 
     @OneToMany(mappedBy = "inviter", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BoardInvite> boardInviters = new ArrayList<>();
+    private Set<BoardInvite> boardInviters = new HashSet<>();
 
-    @OneToMany
-    @JoinColumn(name = "user_Id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<SecureToken> secureTokens = new HashSet<>();
 }

@@ -1,12 +1,12 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.UserDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceChangeRoleDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceInviteDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceMemberDTO;
-import com.boardly.commmon.enums.InviteStatus;
-import com.boardly.commmon.enums.WorkspaceRole;
+import com.boardly.common.dto.UserDTO;
+import com.boardly.common.dto.workspace.WorkspaceChangeRoleDTO;
+import com.boardly.common.dto.workspace.WorkspaceDTO;
+import com.boardly.common.dto.workspace.WorkspaceInviteDTO;
+import com.boardly.common.dto.workspace.WorkspaceMemberDTO;
+import com.boardly.common.enums.InviteStatus;
+import com.boardly.common.enums.WorkspaceRole;
 import com.boardly.data.mapper.UserMapper;
 import com.boardly.data.mapper.WorkspaceMapper;
 import com.boardly.data.model.sql.authentication.User;
@@ -173,6 +173,7 @@ public class WorkspaceMembershipService {
 
         invite.setStatus(InviteStatus.DECLINED);
         workspaceInviteRepository.save(invite);
+        notificationService.sendToUser(invite.getInviter().getId(), "/queue/invites", "Your invitation to " + appUserDetails.getUsername() + " has been declined");
     }
 
     @Transactional

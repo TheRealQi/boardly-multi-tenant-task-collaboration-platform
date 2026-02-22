@@ -1,6 +1,6 @@
 package com.boardly.security;
 
-import com.boardly.commmon.dto.ApiErrorResponseDTO;
+import com.boardly.common.dto.ApiErrorResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

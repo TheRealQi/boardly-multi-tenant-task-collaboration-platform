@@ -1,6 +1,6 @@
 package com.boardly.data.repository;
 
-import com.boardly.commmon.enums.WorkspaceRole;
+import com.boardly.common.enums.WorkspaceRole;
 import com.boardly.data.model.sql.authentication.User;
 import com.boardly.data.model.sql.workspace.Workspace;
 import com.boardly.data.model.sql.workspace.WorkspaceMember;

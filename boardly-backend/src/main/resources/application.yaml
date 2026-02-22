@@ -17,10 +17,21 @@ spring:
   data:
     mongodb:
       uri: mongodb://boardly_user:boardly_pass@localhost:27017/boardly_kanban?authSource=admin
+  mail:
+    host: "smtp.example.com"
+    port: 587
+    username: "your-email@example.com"
+    password: "your-password"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 logging:
   level:
-    root: INFO
+    root: DEBUG
     org.springframework.web: DEBUG
     com.boardly: DEBUG
 
@@ -29,8 +40,13 @@ server:
 
 jwt:
   secret: Wz9a8K6N4b8qX0gF3x9Z+9G8sK5R7EoKq8l0kT6C4Q=
-  expiration: 36000
+  access_token_expiration: 900000
+  refresh_token_expiration: 2592000000
 
 api:
   base-path: /api
   version: v1
+
+app:
+  frontend:
+    url: "http://localhost:3000"

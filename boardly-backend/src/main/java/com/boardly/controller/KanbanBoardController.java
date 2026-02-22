@@ -1,7 +1,7 @@
 package com.boardly.controller;
 
-import com.boardly.commmon.dto.ApiSuccessResponseDTO;
-import com.boardly.commmon.dto.kanbanboard.*;
+import com.boardly.common.dto.ApiSuccessResponseDTO;
+import com.boardly.common.dto.kanbanboard.*;
 import com.boardly.security.model.AppUserDetails;
 import com.boardly.service.KanbanBoardService;
 import jakarta.validation.Valid;
@@ -81,35 +81,35 @@ public class KanbanBoardController {
 
     @DeleteMapping("/{boardId}/card/{cardId}/checklists/{checklistId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteChecklist(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") String checklistId) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteChecklist(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId) {
         kanbanBoardService.deleteChecklist(boardId, cardId, checklistId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist deleted successfully"));
     }
 
     @PutMapping("/{boardId}/card/{cardId}/checklists/{checklistId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateChecklist(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") String checklistId, @Valid @RequestBody ChecklistUpdateRequestDTO checklistUpdateRequestDTO) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateChecklist(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId, @Valid @RequestBody ChecklistUpdateRequestDTO checklistUpdateRequestDTO) {
         kanbanBoardService.updateChecklist(boardId, cardId, checklistId, checklistUpdateRequestDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist updated successfully"));
     }
 
     @PostMapping("/{boardId}/card/{cardId}/checklists/{checklistId}/items")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<ChecklistItemDTO>> addChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") String checklistId, @Valid @RequestBody ChecklistItemCreationRequestDTO checklistItemCreationRequestDTO) {
+    public ResponseEntity<ApiSuccessResponseDTO<ChecklistItemDTO>> addChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId, @Valid @RequestBody ChecklistItemCreationRequestDTO checklistItemCreationRequestDTO) {
         ChecklistItemDTO checklistItemDTO = kanbanBoardService.addChecklistItem(boardId, cardId, checklistId, checklistItemCreationRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Checklist item created successfully", checklistItemDTO));
     }
 
     @DeleteMapping("/{boardId}/card/{cardId}/checklists/{checklistId}/items/{itemId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") String checklistId, @PathVariable("itemId") String itemId) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId, @PathVariable("itemId") UUID itemId) {
         kanbanBoardService.deleteChecklistItem(boardId, cardId, checklistId, itemId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist item deleted successfully"));
     }
 
     @PutMapping("/{boardId}/card/{cardId}/checklists/{checklistId}/items/{itemId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") String checklistId, @PathVariable("itemId") String itemId, @Valid @RequestBody ChecklistItemUpdateRequestDTO checklistItemUpdateRequestDTO) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId, @PathVariable("itemId") UUID itemId, @Valid @RequestBody ChecklistItemUpdateRequestDTO checklistItemUpdateRequestDTO) {
         kanbanBoardService.updateChecklistItem(boardId, cardId, checklistId, itemId, checklistItemUpdateRequestDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist item updated successfully"));
     }
@@ -123,14 +123,14 @@ public class KanbanBoardController {
 
     @DeleteMapping("/{boardId}/card/{cardId}/comments/{commentId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteComment(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("commentId") String commentId) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteComment(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("commentId") UUID commentId) {
         kanbanBoardService.deleteComment(boardId, cardId, commentId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Comment deleted successfully"));
     }
 
     @PutMapping("/{boardId}/card/{cardId}/comments/{commentId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateComment(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("commentId") String commentId, @Valid @RequestBody CommentUpdateRequestDTO commentUpdateRequestDTO) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateComment(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("commentId") UUID commentId, @Valid @RequestBody CommentUpdateRequestDTO commentUpdateRequestDTO) {
         kanbanBoardService.updateComment(boardId, cardId, commentId, commentUpdateRequestDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Comment updated successfully"));
     }

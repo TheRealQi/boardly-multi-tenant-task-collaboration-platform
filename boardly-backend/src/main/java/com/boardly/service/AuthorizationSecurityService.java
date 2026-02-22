@@ -1,9 +1,9 @@
 package com.boardly.service;
 
-import com.boardly.commmon.enums.BoardCreationSetting;
-import com.boardly.commmon.enums.BoardRole;
-import com.boardly.commmon.enums.BoardVisibility;
-import com.boardly.commmon.enums.WorkspaceRole;
+import com.boardly.common.enums.BoardCreationSetting;
+import com.boardly.common.enums.BoardRole;
+import com.boardly.common.enums.BoardVisibility;
+import com.boardly.common.enums.WorkspaceRole;
 import com.boardly.data.model.sql.board.Board;
 import com.boardly.data.model.sql.workspace.Workspace;
 import com.boardly.data.repository.BoardMemberRepository;

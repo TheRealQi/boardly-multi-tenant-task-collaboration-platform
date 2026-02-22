@@ -1,6 +1,6 @@
 package com.boardly.data.repository;
 
-import com.boardly.commmon.enums.InviteStatus;
+import com.boardly.common.enums.InviteStatus;
 import com.boardly.data.model.sql.authentication.User;
 import com.boardly.data.model.sql.workspace.WorkspaceInvite;
 import org.springframework.data.jpa.repository.EntityGraph;

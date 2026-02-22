@@ -10,7 +10,7 @@ import java.util.UUID;
 @Setter
 @Getter
 public class Checklist {
-    private String Id = UUID.randomUUID().toString();
+    private UUID id = UUID.randomUUID();
     private String title;
     private List<ChecklistItem> items = new ArrayList<>();
 }

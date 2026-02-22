@@ -1,6 +1,6 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.kanbanboard.*;
+import com.boardly.common.dto.kanbanboard.*;
 import com.boardly.data.mapper.KanbanMapper;
 import com.boardly.data.mapper.UserMapper;
 import com.boardly.data.model.nosql.*;
@@ -221,8 +221,7 @@ public class KanbanBoardService {
         List<CardCommentDTO> comments = kanbanCard.getComments().stream()
                 .map(comment -> {
                     CardCommentDTO cardCommentDTO = kanbanMapper.toDTO(comment);
-                    UUID authorId = UUID.fromString(comment.getAuthorId());
-                    userRepository.findById(authorId).ifPresent(user -> cardCommentDTO.setAuthor(userMapper.toDTO(user)));
+                    userRepository.findById(comment.getAuthorId()).ifPresent(user -> cardCommentDTO.setAuthor(userMapper.toDTO(user)));
                     return cardCommentDTO;
                 })
                 .collect(Collectors.toList());
@@ -273,7 +272,7 @@ public class KanbanBoardService {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         Checklist checklist = new Checklist();
-        checklist.setId(UUID.randomUUID().toString());
+        checklist.setId(UUID.randomUUID());
         checklist.setTitle(checklistDTO.getTitle());
         checklist.setItems(new ArrayList<>());
         card.getChecklists().add(checklist);
@@ -283,7 +282,7 @@ public class KanbanBoardService {
         return newChecklistDTO;
     }
 
-    public void deleteChecklist(UUID boardId, UUID cardId, String checklistId) {
+    public void deleteChecklist(UUID boardId, UUID cardId, UUID checklistId) {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         card.getChecklists().removeIf(checklist -> checklist.getId().equals(checklistId));
@@ -291,7 +290,7 @@ public class KanbanBoardService {
         notificationService.sendToTopic("/topic/kanban/" + boardId + "/card/" + cardId, Map.of("checklistId", checklistId, "deleted", true));
     }
 
-    public void updateChecklist(UUID boardId, UUID cardId, String checklistId, ChecklistUpdateRequestDTO updateRequest) {
+    public void updateChecklist(UUID boardId, UUID cardId, UUID checklistId, ChecklistUpdateRequestDTO updateRequest) {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         Checklist checklist = card.getChecklists().stream()
@@ -305,7 +304,7 @@ public class KanbanBoardService {
         notificationService.sendToTopic("/topic/kanban/" + boardId + "/card/" + cardId, kanbanMapper.toDTO(checklist));
     }
 
-    public ChecklistItemDTO addChecklistItem(UUID boardId, UUID cardId, String checklistId, ChecklistItemCreationRequestDTO creationRequest) {
+    public ChecklistItemDTO addChecklistItem(UUID boardId, UUID cardId, UUID checklistId, ChecklistItemCreationRequestDTO creationRequest) {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         Checklist checklist = card.getChecklists().stream()
@@ -321,7 +320,7 @@ public class KanbanBoardService {
         return checklistItemDTO;
     }
 
-    public void deleteChecklistItem(UUID boardId, UUID cardId, String checklistId, String itemId) {
+    public void deleteChecklistItem(UUID boardId, UUID cardId, UUID checklistId, UUID itemId) {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         Checklist checklist = card.getChecklists().stream()
@@ -333,7 +332,7 @@ public class KanbanBoardService {
         notificationService.sendToTopic("/topic/kanban/" + boardId + "/card/" + cardId + "/checklist/" + checklistId, Map.of("itemId", itemId, "deleted", true));
     }
 
-    public void updateChecklistItem(UUID boardId, UUID cardId, String checklistId, String itemId, ChecklistItemUpdateRequestDTO updateRequest) {
+    public void updateChecklistItem(UUID boardId, UUID cardId, UUID checklistId, UUID itemId, ChecklistItemUpdateRequestDTO updateRequest) {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         Checklist checklist = card.getChecklists().stream()
@@ -358,7 +357,7 @@ public class KanbanBoardService {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         Comment comment = new Comment();
-        comment.setAuthorId(userDetails.getUserId().toString());
+        comment.setAuthorId(userDetails.getUserId());
         comment.setContent(creationRequest.getText());
         card.getComments().add(comment);
         kanbanCardRepository.save(card);
@@ -368,7 +367,7 @@ public class KanbanBoardService {
         return cardCommentDTO;
     }
 
-    public void deleteComment(UUID boardId, UUID cardId, String commentId) {
+    public void deleteComment(UUID boardId, UUID cardId, UUID commentId) {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         card.getComments().removeIf(comment -> comment.getId().equals(commentId));
@@ -376,7 +375,7 @@ public class KanbanBoardService {
         notificationService.sendToTopic("/topic/kanban/" + boardId + "/card/" + cardId, Map.of("commentId", commentId, "deleted", true));
     }
 
-    public void updateComment(UUID boardId, UUID cardId, String commentId, CommentUpdateRequestDTO updateRequest) {
+    public void updateComment(UUID boardId, UUID cardId, UUID commentId, CommentUpdateRequestDTO updateRequest) {
         KanbanCard card = kanbanCardRepository.findByBoardIdAndId(boardId, cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
         Comment comment = card.getComments().stream()
@@ -389,7 +388,7 @@ public class KanbanBoardService {
         }
         kanbanCardRepository.save(card);
         CardCommentDTO cardCommentDTO = kanbanMapper.toDTO(comment);
-        userRepository.findById(UUID.fromString(comment.getAuthorId())).ifPresent(user -> cardCommentDTO.setAuthor(userMapper.toDTO(user)));
+        userRepository.findById(comment.getAuthorId()).ifPresent(user -> cardCommentDTO.setAuthor(userMapper.toDTO(user)));
         notificationService.sendToTopic("/topic/kanban/" + boardId + "/card/" + cardId, cardCommentDTO);
     }
 }

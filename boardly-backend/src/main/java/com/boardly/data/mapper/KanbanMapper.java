@@ -1,6 +1,6 @@
 package com.boardly.data.mapper;
 
-import com.boardly.commmon.dto.kanbanboard.*;
+import com.boardly.common.dto.kanbanboard.*;
 import com.boardly.data.model.nosql.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

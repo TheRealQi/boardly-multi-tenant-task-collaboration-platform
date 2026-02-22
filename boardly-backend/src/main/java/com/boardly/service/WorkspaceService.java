@@ -1,8 +1,8 @@
 package com.boardly.service;
 
-import com.boardly.commmon.dto.workspace.*;
-import com.boardly.commmon.enums.BoardCreationSetting;
-import com.boardly.commmon.enums.WorkspaceRole;
+import com.boardly.common.dto.workspace.*;
+import com.boardly.common.enums.BoardCreationSetting;
+import com.boardly.common.enums.WorkspaceRole;
 import com.boardly.data.mapper.WorkspaceMapper;
 import com.boardly.data.model.sql.workspace.Workspace;
 import com.boardly.data.model.sql.workspace.WorkspaceBoardCreationSetting;

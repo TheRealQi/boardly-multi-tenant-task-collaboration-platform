@@ -1,6 +1,6 @@
 package com.boardly.data.repository;
 
-import com.boardly.commmon.enums.BoardRole;
+import com.boardly.common.enums.BoardRole;
 import com.boardly.data.model.sql.board.BoardMember;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

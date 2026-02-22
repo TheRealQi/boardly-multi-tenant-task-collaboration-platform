@@ -1,6 +1,6 @@
 package com.boardly.data.model.sql.workspace;
 
-import com.boardly.commmon.enums.WorkspaceRole;
+import com.boardly.common.enums.WorkspaceRole;
 import com.boardly.data.model.sql.BaseEntity;
 import com.boardly.data.model.sql.authentication.User;
 import jakarta.persistence.*;
@@ -16,11 +16,11 @@ import lombok.Setter;
 @Getter
 public class WorkspaceMember extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workspace_Id")
+    @JoinColumn(name = "workspace_id")
     private Workspace workspace;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_Id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Enumerated(EnumType.STRING)

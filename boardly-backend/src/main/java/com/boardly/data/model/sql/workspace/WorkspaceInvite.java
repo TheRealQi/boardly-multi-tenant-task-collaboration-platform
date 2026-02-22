@@ -1,6 +1,6 @@
 package com.boardly.data.model.sql.workspace;
 
-import com.boardly.commmon.enums.InviteStatus;
+import com.boardly.common.enums.InviteStatus;
 import com.boardly.data.model.sql.BaseEntity;
 import com.boardly.data.model.sql.authentication.User;
 import jakarta.persistence.*;
@@ -18,15 +18,15 @@ import java.time.Instant;
 @NoArgsConstructor
 public class WorkspaceInvite extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "workspace_Id")
+    @JoinColumn(name = "workspace_id")
     private Workspace workspace;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "invitee_Id")
+    @JoinColumn(name = "invitee_id")
     private User invitee;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "inviter_Id")
+    @JoinColumn(name = "inviter_id")
     private User inviter;
 
     @Enumerated(EnumType.STRING)

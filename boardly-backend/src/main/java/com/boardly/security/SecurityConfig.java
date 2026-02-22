@@ -2,6 +2,10 @@ package com.boardly.security;
 
 import com.boardly.security.filter.JWTFilter;
 import com.boardly.security.service.CustomUserDetailsService;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,12 +24,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
 public class SecurityConfig {
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
     private final JWTFilter jwtFilter;
     private final CustomUserDetailsService customUserDetailsService;
+
+    @Value("${api.base-path}")
+    private String basePath;
+
+    @Value("${api.version}")
+    private String apiVersion;
 
     public SecurityConfig(JWTFilter jwtFilter, CustomUserDetailsService customUserDetailsService) {
         this.jwtFilter = jwtFilter;
         this.customUserDetailsService = customUserDetailsService;
+    }
+
+    @PostConstruct
+    public void logConfig() {
+        String authPath = basePath + "/" + apiVersion + "/auth/**";
+        logger.info("Security Configured: Auth path set to '{}'", authPath);
     }
 
     @Bean
@@ -48,11 +65,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        String authPath = basePath + "/" + apiVersion + "/auth/**";
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(authPath).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS));

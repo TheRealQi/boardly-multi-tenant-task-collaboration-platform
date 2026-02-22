@@ -1,9 +1,9 @@
 package com.boardly.data.mapper;
 
-import com.boardly.commmon.dto.workspace.WorkspaceCreationDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceDetailsDTO;
-import com.boardly.commmon.enums.WorkspaceRole;
+import com.boardly.common.dto.workspace.WorkspaceCreationDTO;
+import com.boardly.common.dto.workspace.WorkspaceDTO;
+import com.boardly.common.dto.workspace.WorkspaceDetailsDTO;
+import com.boardly.common.enums.WorkspaceRole;
 import com.boardly.data.model.sql.workspace.Workspace;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

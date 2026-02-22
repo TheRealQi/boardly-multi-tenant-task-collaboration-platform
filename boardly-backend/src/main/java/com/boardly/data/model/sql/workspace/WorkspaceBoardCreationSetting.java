@@ -1,6 +1,6 @@
 package com.boardly.data.model.sql.workspace;
 
-import com.boardly.commmon.enums.BoardCreationSetting;
+import com.boardly.common.enums.BoardCreationSetting;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

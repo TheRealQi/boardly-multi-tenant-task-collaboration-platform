@@ -1,7 +1,7 @@
 package com.boardly.controller;
 
-import com.boardly.commmon.dto.ApiSuccessResponseDTO;
-import com.boardly.commmon.dto.authentication.*;
+import com.boardly.common.dto.ApiSuccessResponseDTO;
+import com.boardly.common.dto.authentication.*;
 import com.boardly.security.model.AppUserDetails;
 import com.boardly.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;

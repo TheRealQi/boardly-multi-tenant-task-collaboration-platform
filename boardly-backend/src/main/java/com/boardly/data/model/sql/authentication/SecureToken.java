@@ -1,6 +1,6 @@
 package com.boardly.data.model.sql.authentication;
 
-import com.boardly.commmon.enums.TokenType;
+import com.boardly.common.enums.TokenType;
 import com.boardly.data.model.sql.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,7 +28,7 @@ public class SecureToken extends BaseEntity {
     private TokenType tokenType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_Id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public boolean isExpired() {

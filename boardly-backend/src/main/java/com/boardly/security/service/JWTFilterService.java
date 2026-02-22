@@ -1,5 +1,6 @@
 package com.boardly.security.service;
 
+import com.boardly.exception.TokenExpiredException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,8 +21,11 @@ public class JWTFilterService {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration}")
-    private Long accessTokenExpirationTime; // This is in milliseconds
+    @Value("${jwt.access_token_expiration}")
+    private Long accessTokenExpirationTime; // In ms
+
+    @Value("${jwt.refresh_token_expiration}")
+    private Long refreshTokenExpirationTime; // In ms
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -61,6 +65,8 @@ public class JWTFilterService {
                     .parseSignedClaims(token)
                     .getPayload();
             return Optional.of(UUID.fromString(claims.getSubject()));
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("Token has expired");
         } catch (JwtException e) {
             return Optional.empty();
         }

@@ -1,9 +1,9 @@
 package com.boardly.data.mapper;
 
-import com.boardly.commmon.dto.board.BoardCreationRequestDTO;
-import com.boardly.commmon.dto.board.BoardDTO;
-import com.boardly.commmon.dto.workspace.WorkspaceDTO;
-import com.boardly.commmon.enums.BoardRole;
+import com.boardly.common.dto.board.BoardCreationRequestDTO;
+import com.boardly.common.dto.board.BoardDTO;
+import com.boardly.common.dto.workspace.WorkspaceDTO;
+import com.boardly.common.enums.BoardRole;
 import com.boardly.data.model.sql.board.Board;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

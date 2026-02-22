@@ -1,6 +1,6 @@
 package com.boardly.data.mapper;
 
-import com.boardly.commmon.dto.UserDTO;
+import com.boardly.common.dto.UserDTO;
 import com.boardly.data.model.sql.authentication.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

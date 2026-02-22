@@ -1,6 +1,8 @@
 package com.boardly.exception;
 
-import com.boardly.commmon.dto.ApiErrorResponseDTO;
+import com.boardly.common.dto.ApiErrorResponseDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -10,7 +12,6 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.Instant;
@@ -21,10 +22,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleInvalidFieldsException(
             MethodArgumentNotValidException ex) {
-
+        logger.error("Validation error: {}", ex.getMessage());
         Map<String, List<String>> fieldErrors =
                 ex.getBindingResult()
                         .getFieldErrors()
@@ -46,6 +49,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FieldsValidationException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleFieldsTakenException(FieldsValidationException ex) {
+        logger.error("Fields validation error: {}", ex.getMessage());
         ApiErrorResponseDTO apiErrorResponseDTO = new ApiErrorResponseDTO();
         apiErrorResponseDTO.setStatusCode(HttpStatus.BAD_REQUEST.value());
         apiErrorResponseDTO.setTimestamp(Instant.now());
@@ -57,6 +61,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleBadCredentials(BadCredentialsException ex) {
+        logger.error("Bad credentials: {}", ex.getMessage());
         ApiErrorResponseDTO error = new ApiErrorResponseDTO();
         error.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         error.setTimestamp(Instant.now());
@@ -66,6 +71,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        logger.error("Resource not found: {}", ex.getMessage());
         ApiErrorResponseDTO apiErrorResponseDTO = new ApiErrorResponseDTO();
         apiErrorResponseDTO.setStatusCode(HttpStatus.NOT_FOUND.value());
         apiErrorResponseDTO.setTimestamp(Instant.now());
@@ -75,6 +81,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleForbiddenException(ForbiddenException ex) {
+        logger.error("Forbidden: {}", ex.getMessage());
         ApiErrorResponseDTO apiErrorResponseDTO = new ApiErrorResponseDTO();
         apiErrorResponseDTO.setStatusCode(HttpStatus.FORBIDDEN.value());
         apiErrorResponseDTO.setTimestamp(Instant.now());
@@ -84,6 +91,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleUnauthorizedException(UnauthorizedException ex) {
+        logger.error("Unauthorized: {}", ex.getMessage());
         ApiErrorResponseDTO apiErrorResponseDTO = new ApiErrorResponseDTO();
         apiErrorResponseDTO.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         apiErrorResponseDTO.setTimestamp(Instant.now());
@@ -93,6 +101,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleConflictException(ConflictException ex) {
+        logger.error("Conflict: {}", ex.getMessage());
         ApiErrorResponseDTO apiErrorResponseDTO = new ApiErrorResponseDTO();
         apiErrorResponseDTO.setStatusCode(HttpStatus.CONFLICT.value());
         apiErrorResponseDTO.setTimestamp(Instant.now());
@@ -102,6 +111,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleBadRequestException(BadRequestException ex) {
+        logger.error("Bad request: {}", ex.getMessage());
         ApiErrorResponseDTO apiErrorResponseDTO = new ApiErrorResponseDTO();
         apiErrorResponseDTO.setStatusCode(HttpStatus.BAD_REQUEST.value());
         apiErrorResponseDTO.setTimestamp(Instant.now());
@@ -111,6 +121,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+        logger.error("Method not allowed: {}", ex.getMessage());
         ApiErrorResponseDTO error = new ApiErrorResponseDTO();
         error.setStatusCode(HttpStatus.METHOD_NOT_ALLOWED.value());
         error.setTimestamp(Instant.now());
@@ -120,6 +131,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+        logger.error("Media type not supported: {}", ex.getMessage());
         ApiErrorResponseDTO error = new ApiErrorResponseDTO();
         error.setStatusCode(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value());
         error.setTimestamp(Instant.now());
@@ -129,6 +141,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleNoHandlerFound(NoHandlerFoundException ex) {
+        logger.error("No handler found: {}", ex.getMessage());
         ApiErrorResponseDTO error = new ApiErrorResponseDTO();
         error.setStatusCode(HttpStatus.NOT_FOUND.value());
         error.setTimestamp(Instant.now());
@@ -138,6 +151,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponseDTO> handleIllegalArgumentException(IllegalArgumentException ex) {
+        logger.error("Illegal argument: {}", ex.getMessage());
         ApiErrorResponseDTO apiErrorResponseDTO = new ApiErrorResponseDTO();
         apiErrorResponseDTO.setStatusCode(HttpStatus.BAD_REQUEST.value());
         apiErrorResponseDTO.setTimestamp(Instant.now());
@@ -148,6 +162,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponseDTO> handleGenericException(Exception ex) {
+        logger.error("An unexpected error occurred", ex);
         ApiErrorResponseDTO apiErrorResponseDTO = new ApiErrorResponseDTO();
         apiErrorResponseDTO.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         apiErrorResponseDTO.setTimestamp(Instant.now());

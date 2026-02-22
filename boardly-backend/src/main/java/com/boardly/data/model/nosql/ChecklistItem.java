@@ -8,7 +8,7 @@ import java.util.UUID;
 @Setter
 @Getter
 public class ChecklistItem {
-    private String Id = UUID.randomUUID().toString();
+    private UUID id = UUID.randomUUID();
     private String text;
     private boolean isCompleted;
 }

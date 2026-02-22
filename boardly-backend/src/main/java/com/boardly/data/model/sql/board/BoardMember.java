@@ -1,6 +1,6 @@
 package com.boardly.data.model.sql.board;
 
-import com.boardly.commmon.enums.BoardRole;
+import com.boardly.common.enums.BoardRole;
 import com.boardly.data.model.sql.BaseEntity;
 import com.boardly.data.model.sql.authentication.User;
 import jakarta.persistence.*;
@@ -18,12 +18,12 @@ import lombok.Setter;
 public class BoardMember extends BaseEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_Id")
+    @JoinColumn(name = "board_id")
     private Board board;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_Id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @NotNull

@@ -9,9 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -30,11 +28,11 @@ public class Workspace extends BaseEntity {
     private WorkspaceBoardCreationSetting boardCreationSettings = new WorkspaceBoardCreationSetting();
 
     @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WorkspaceInvite> invites = new ArrayList<>();
+    private Set<WorkspaceInvite> invites = new HashSet<>();
 
     @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WorkspaceMember> members = new HashSet<>();
 
     @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Board> boards = new ArrayList<>();
+    private Set<Board> boards = new HashSet<>();
 }
