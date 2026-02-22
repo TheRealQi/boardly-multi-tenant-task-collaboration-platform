@@ -26,5 +26,9 @@ public interface WorkspaceMapper {
     WorkspaceDetailsDTO toDetailsDto(Workspace workspace);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "boardCreationSettings", ignore = true)
+    @Mapping(target = "invites", ignore = true)
+    @Mapping(target = "members", ignore = true)
+    @Mapping(target = "boards", ignore = true)
     Workspace toEntity(WorkspaceCreationDTO creationDTO);
 }

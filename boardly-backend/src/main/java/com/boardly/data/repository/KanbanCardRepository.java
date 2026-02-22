@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface KanbanCardRepository extends MongoRepository<KanbanCard, UUID> {
     List<KanbanCard> findAllByBoardId(UUID boardId);
-    Optional<KanbanCard> findByIdAndBoardId(UUID cardId, UUID boardId);
+    Optional<KanbanCard> findByBoardIdAndId(UUID boardId, UUID cardId);
     void deleteAllByBoardId(UUID boardId);
     void deleteAllByBoardIdAndListId(UUID boardId, UUID listId);
 }

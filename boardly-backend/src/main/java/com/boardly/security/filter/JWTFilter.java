@@ -33,9 +33,9 @@ public class JWTFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
             if (!token.isEmpty()) {
-                UUID uuid = jwtFilterService.validateToken(token).orElseThrow();
-                if (uuid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = customUserService.loadUserById(uuid);
+                UUID uuId = jwtFilterService.validateToken(token).orElseThrow();
+                if (uuId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = customUserService.loadUserById(uuId);
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, null);
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);

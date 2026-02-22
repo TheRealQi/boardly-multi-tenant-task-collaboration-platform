@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -32,14 +33,16 @@ public class BoardMembershipService {
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final BoardInviteRepository boardInviteRepository;
     private final UserMapper userMapper;
+    private final NotificationService notificationService;
 
-    public BoardMembershipService(BoardRepository boardRepository, BoardMemberRepository boardMemberRepository, UserRepository userRepository, WorkspaceMemberRepository workspaceMemberRepository, BoardInviteRepository boardInviteRepository, UserMapper userMapper) {
+    public BoardMembershipService(BoardRepository boardRepository, BoardMemberRepository boardMemberRepository, UserRepository userRepository, WorkspaceMemberRepository workspaceMemberRepository, BoardInviteRepository boardInviteRepository, UserMapper userMapper, NotificationService notificationService) {
         this.boardRepository = boardRepository;
         this.boardMemberRepository = boardMemberRepository;
         this.userRepository = userRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.boardInviteRepository = boardInviteRepository;
         this.userMapper = userMapper;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -57,6 +60,7 @@ public class BoardMembershipService {
         newMember.setRole(BoardRole.MEMBER);
 
         boardMemberRepository.save(newMember);
+        notificationService.sendToTopic("/topic/board/" + boardId, "User " + appUserDetails.getUsername() + " joined the board");
     }
 
     @Transactional
@@ -80,6 +84,8 @@ public class BoardMembershipService {
             }
         }
         boardMemberRepository.delete(member);
+        notificationService.sendToTopic("/topic/board/" + boardId, Map.of("type", "USER_LEFT", "userId", userId));
+        notificationService.sendToUser(userId, "/queue/access-revoked", Map.of("boardId", boardId));
     }
 
     @Transactional
@@ -101,6 +107,8 @@ public class BoardMembershipService {
             }
         }
         boardMemberRepository.delete(memberToRemove);
+        notificationService.sendToTopic("/topic/board/" + boardId, Map.of("type", "USER_REMOVED", "userId", memberId));
+        notificationService.sendToUser(memberId, "/queue/access-revoked", Map.of("boardId", boardId));
     }
 
     @Transactional
@@ -116,6 +124,8 @@ public class BoardMembershipService {
         }
         targetMember.setRole(newRole);
         boardMemberRepository.save(targetMember);
+        notificationService.sendToUser(memberId, "/queue/board", "Your role in the board has been changed to " + newRole);
+        notificationService.sendToTopic("/topic/board/" + boardId, "User " + targetMember.getUser().getUsername() + "'s role has been changed to " + newRole);
     }
 
     public List<BoardMemberDTO> getBoardMembers(UUID boardId) {
@@ -151,6 +161,9 @@ public class BoardMembershipService {
         newMember.setRole(BoardRole.MEMBER);
         boardMemberRepository.save(newMember);
 
+        notificationService.sendToUser(userId, "/queue/board", "You have been added to the board");
+        notificationService.sendToTopic("/topic/board/" + boardId, "User " + user.getUsername() + " has been added to the board");
+
         return new BoardMemberDTO(
                 userMapper.toDTO(user),
                 newMember.getRole(),
@@ -182,6 +195,8 @@ public class BoardMembershipService {
             newMember.setUser(userToInvite);
             newMember.setRole(BoardRole.MEMBER);
             boardMemberRepository.save(newMember);
+            notificationService.sendToUser(userToInvite.getId(), "/queue/board", "You have been added to the board");
+            notificationService.sendToTopic("/topic/board/" + boardId, "User " + userToInvite.getUsername() + " has been added to the board");
             return new BoardInviteDTO(
                     null,
                     board.getId(),
@@ -201,7 +216,7 @@ public class BoardMembershipService {
         invite.setExpiresAt(Instant.now().plus(7, ChronoUnit.DAYS));
         boardInviteRepository.save(invite);
 
-        return new BoardInviteDTO(
+        BoardInviteDTO inviteDTO = new BoardInviteDTO(
                 invite.getId(),
                 board.getId(),
                 board.getTitle(),
@@ -210,6 +225,8 @@ public class BoardMembershipService {
                 invite.getStatus(),
                 invite.getExpiresAt()
         );
+        notificationService.sendToUser(userToInvite.getId(), "/queue/invites", inviteDTO);
+        return inviteDTO;
     }
 
 
@@ -271,6 +288,7 @@ public class BoardMembershipService {
 
         invite.setStatus(InviteStatus.ACCEPTED);
         boardInviteRepository.save(invite);
+        notificationService.sendToTopic("/topic/board/" + invite.getBoard().getId(), "User " + appUserDetails.getUsername() + " joined the board");
     }
 
     @Transactional
@@ -291,7 +309,7 @@ public class BoardMembershipService {
         if (invite.getStatus() != InviteStatus.PENDING) {
             throw new BadRequestException("Invitation is not pending");
         }
-        invite.setStatus(InviteStatus.CANCELED);
+        invite.setStatus(InviteStatus.CANCELLED);
         boardInviteRepository.save(invite);
     }
 }

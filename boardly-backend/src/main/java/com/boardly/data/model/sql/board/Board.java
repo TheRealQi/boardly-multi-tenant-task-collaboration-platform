@@ -34,7 +34,7 @@ public class Board extends BaseEntity {
     private Set<BoardMember> members = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workspace_id")
+    @JoinColumn(name = "workspace_Id")
     private Workspace workspace;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)

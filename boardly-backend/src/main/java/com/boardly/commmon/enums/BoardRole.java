@@ -6,7 +6,7 @@ public enum BoardRole {
     ADMIN("admin"),
     MEMBER("member"),
     OBSERVER("observer"),
-    VIWER("viewer");
+    VIEWER("viewer");
 
     BoardRole(String value) {
         this.value = value;

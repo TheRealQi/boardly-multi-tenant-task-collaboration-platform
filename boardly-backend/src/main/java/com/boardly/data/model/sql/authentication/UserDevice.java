@@ -15,7 +15,7 @@ import java.time.Instant;
 @Builder
 public class UserDevice extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_Id", nullable = false)
     private User user;
 
     @NotNull

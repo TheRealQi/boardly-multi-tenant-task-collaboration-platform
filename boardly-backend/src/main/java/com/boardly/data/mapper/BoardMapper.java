@@ -20,5 +20,7 @@ public interface BoardMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "workspace", ignore = true)
+    @Mapping(target = "members", ignore = true)
+    @Mapping(target = "invites", ignore = true)
     Board toEntity(BoardCreationRequestDTO creationDTO);
 }

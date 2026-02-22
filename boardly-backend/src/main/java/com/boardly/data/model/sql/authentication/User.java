@@ -66,6 +66,6 @@ public class User extends BaseEntity {
     private List<BoardInvite> boardInviters = new ArrayList<>();
 
     @OneToMany
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_Id")
     private Set<SecureToken> secureTokens = new HashSet<>();
 }

@@ -21,7 +21,7 @@ public class JWTFilterService {
     private String jwtSecret;
 
     @Value("${jwt.expiration}")
-    private Long accessTokenExpirationTime;
+    private Long accessTokenExpirationTime; // This is in milliseconds
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -33,30 +33,36 @@ public class JWTFilterService {
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateToken(UUID userId, Long expirationTime) {
+    public String generateToken(UUID userId) {
+        Instant now = Instant.now();
         return Jwts.builder()
                 .subject(userId.toString())
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plusMillis(expirationTime)))
-                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plusMillis(accessTokenExpirationTime)))
+                .signWith(secretKey)
                 .compact();
     }
 
     public String generateRefreshToken(UUID userId) {
         byte[] token = new byte[32]; // 32 bytes = 256 bits
         secureRandom.nextBytes(token);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(token);    }
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(token);
+    }
 
     public long getAccessTokenExpirationFromNow() {
         return Instant.now().plusMillis(accessTokenExpirationTime).getEpochSecond();
     }
 
     public Optional<UUID> validateToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-        return Optional.of(UUID.fromString(claims.getSubject()));
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return Optional.of(UUID.fromString(claims.getSubject()));
+        } catch (JwtException e) {
+            return Optional.empty();
+        }
     }
 }

@@ -16,11 +16,11 @@ import lombok.Setter;
 @Getter
 public class WorkspaceMember extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workspace_id")
+    @JoinColumn(name = "workspace_Id")
     private Workspace workspace;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_Id")
     private User user;
 
     @Enumerated(EnumType.STRING)

@@ -9,7 +9,7 @@ import java.util.UUID;
 @Setter
 @Getter
 public class Comment {
-    private String id = UUID.randomUUID().toString();
+    private String Id = UUID.randomUUID().toString();
     private String authorId;
     private String content;
     private boolean edited = false;

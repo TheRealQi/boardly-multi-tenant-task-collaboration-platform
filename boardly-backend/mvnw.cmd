@@ -106,7 +106,7 @@ if (Test-Path -Path "$MAVEN_HOME" -PathType Container) {
 }
 
 if (! $distributionUrlNameMain -or ($distributionUrlName -eq $distributionUrlNameMain)) {
-  Write-Error "distributionUrl is not valid, must end with *-bin.zip, but found $distributionUrl"
+  Write-Error "distributionUrl is not valId, must end with *-bin.zip, but found $distributionUrl"
 }
 
 # prepare tmp dir
@@ -134,7 +134,7 @@ if ($env:MVNW_USERNAME -and $env:MVNW_PASSWORD) {
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $webclient.DownloadFile($distributionUrl, "$TMP_DOWNLOAD_DIR/$distributionUrlName") | Out-Null
 
-# If specified, validate the SHA-256 sum of the Maven distribution zip file
+# If specified, valIdate the SHA-256 sum of the Maven distribution zip file
 $distributionSha256Sum = (Get-Content -Raw "$scriptDir/.mvn/wrapper/maven-wrapper.properties" | ConvertFrom-StringData).distributionSha256Sum
 if ($distributionSha256Sum) {
   if ($USE_MVND) {
@@ -142,7 +142,7 @@ if ($distributionSha256Sum) {
   }
   Import-Module $PSHOME\Modules\Microsoft.PowerShell.Utility -Function Get-FileHash
   if ((Get-FileHash "$TMP_DOWNLOAD_DIR/$distributionUrlName" -Algorithm SHA256).Hash.ToLower() -ne $distributionSha256Sum) {
-    Write-Error "Error: Failed to validate Maven distribution SHA-256, your Maven distribution might be compromised. If you updated your Maven version, you need to update the specified distributionSha256Sum property."
+    Write-Error "Error: Failed to valIdate Maven distribution SHA-256, your Maven distribution might be compromised. If you updated your Maven version, you need to update the specified distributionSha256Sum property."
   }
 }
 

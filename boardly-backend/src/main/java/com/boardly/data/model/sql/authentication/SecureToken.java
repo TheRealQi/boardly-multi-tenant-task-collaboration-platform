@@ -28,7 +28,7 @@ public class SecureToken extends BaseEntity {
     private TokenType tokenType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_Id", nullable = false)
     private User user;
 
     public boolean isExpired() {

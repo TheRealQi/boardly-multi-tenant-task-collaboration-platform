@@ -18,15 +18,15 @@ import java.time.Instant;
 @NoArgsConstructor
 public class WorkspaceInvite extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "workspace_id")
+    @JoinColumn(name = "workspace_Id")
     private Workspace workspace;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "invitee_id")
+    @JoinColumn(name = "invitee_Id")
     private User invitee;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "inviter_id")
+    @JoinColumn(name = "inviter_Id")
     private User inviter;
 
     @Enumerated(EnumType.STRING)

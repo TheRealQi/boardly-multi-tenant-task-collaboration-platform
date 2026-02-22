@@ -6,7 +6,7 @@ public enum InviteStatus {
     PENDING("pending"),
     ACCEPTED("accepted"),
     DECLINED("declined"),
-    CANCELED("canceled"),
+    CANCELLED("cancelled"),
     EXPIRED("expired");
 
     InviteStatus(String value) {

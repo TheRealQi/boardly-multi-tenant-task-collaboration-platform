@@ -34,11 +34,17 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Login successful", loginResponseDTO));
     }
 
-//    @PutMapping("/logout")
-//    public ResponseEntity<ApiSuccessResponseDTO<Void>> logout(@AuthenticationPrincipal AppUserDetails appUserDetails) {
-//        authenticationService.logout(appUserDetails);
-//        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Logout successful"));
-//    }
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiSuccessResponseDTO<LoginResponseDTO>> refreshToken(@RequestBody @Valid RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        LoginResponseDTO loginResponseDTO = authenticationService.refreshToken(refreshTokenRequestDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Tokens refreshed successfully", loginResponseDTO));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> logout(@RequestBody @Valid RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        authenticationService.logout(refreshTokenRequestDTO);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Logout successful"));
+    }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiSuccessResponseDTO<Void>> forgotPassword(@RequestParam String email) {
@@ -69,6 +75,4 @@ public class AuthenticationController {
         authenticationService.sendEmailVerificationEmail(appUserDetails.getUser());
         return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Verification email sent successfully"));
     }
-
-
 }

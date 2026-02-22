@@ -37,8 +37,9 @@ public class WorkspaceMembershipService {
     private final UserMapper userMapper;
     private final WorkspaceMapper workspaceMapper;
     private final BoardMemberRepository boardMemberRepository;
+    private final NotificationService notificationService;
 
-    public WorkspaceMembershipService(WorkspaceRepository workspaceRepository, WorkspaceMemberRepository workspaceMemberRepository, UserRepository userRepository, WorkspaceInviteRepository workspaceInviteRepository, UserMapper userMapper, WorkspaceMapper workspaceMapper, BoardMemberRepository boardMemberRepository) {
+    public WorkspaceMembershipService(WorkspaceRepository workspaceRepository, WorkspaceMemberRepository workspaceMemberRepository, UserRepository userRepository, WorkspaceInviteRepository workspaceInviteRepository, UserMapper userMapper, WorkspaceMapper workspaceMapper, BoardMemberRepository boardMemberRepository, NotificationService notificationService) {
         this.workspaceRepository = workspaceRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.userRepository = userRepository;
@@ -46,6 +47,7 @@ public class WorkspaceMembershipService {
         this.userMapper = userMapper;
         this.workspaceMapper = workspaceMapper;
         this.boardMemberRepository = boardMemberRepository;
+        this.notificationService = notificationService;
     }
 
 
@@ -73,6 +75,7 @@ public class WorkspaceMembershipService {
             throw new ForbiddenException("Workspace owners cannot leave the workspace. Please transfer ownership or delete the workspace.");
         }
         workspaceMemberRepository.delete(member);
+        notificationService.sendToTopic("/topic/workspace/" + workspaceId, "User " + appUserDetails.getUsername() + " left the workspace");
     }
 
     @Transactional
@@ -100,7 +103,9 @@ public class WorkspaceMembershipService {
         UserDTO inviteeDTO = userMapper.toDTO(userToInvite);
         UserDTO inviterDTO = userMapper.toDTO(appUserDetails.getUser());
 
-        return new WorkspaceInviteDTO(invite.getId(), workspaceMapper.toDto(workspace, null), inviteeDTO, inviterDTO, invite.getStatus(), invite.getExpiresAt());
+        WorkspaceInviteDTO inviteDTO = new WorkspaceInviteDTO(invite.getId(), workspaceMapper.toDto(workspace, null), inviteeDTO, inviterDTO, invite.getStatus(), invite.getExpiresAt());
+        notificationService.sendToUser(userToInvite.getId(), "/queue/invites", inviteDTO);
+        return inviteDTO;
     }
 
     @Transactional
@@ -115,6 +120,8 @@ public class WorkspaceMembershipService {
         }
         workspaceMemberRepository.delete(memberToRemove);
         boardMemberRepository.deleteAllByWorkspaceIdAndUserId(workspaceId, memberId);
+        notificationService.sendToUser(memberId, "/queue/workspace", "You have been removed from the workspace");
+        notificationService.sendToTopic("/topic/workspace/" + workspaceId, "User " + memberToRemove.getUser().getUsername() + " has been removed from the workspace");
     }
 
     @Transactional
@@ -145,6 +152,7 @@ public class WorkspaceMembershipService {
 
         invite.setStatus(InviteStatus.ACCEPTED);
         workspaceInviteRepository.save(invite);
+        notificationService.sendToTopic("/topic/workspace/" + invite.getWorkspace().getId(), "User " + appUserDetails.getUsername() + " joined the workspace");
         return new WorkspaceDTO(
                 invite.getWorkspace().getId(),
                 invite.getWorkspace().getTitle(),
@@ -168,13 +176,13 @@ public class WorkspaceMembershipService {
     }
 
     @Transactional
-    public void cancelBoardInvitation(UUID inviteId) {
+    public void cancelWorkspaceInvitation(UUID inviteId) {
         WorkspaceInvite invite = workspaceInviteRepository.findById(inviteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid Invitation"));
         if (invite.getStatus() != InviteStatus.PENDING) {
             throw new BadRequestException("Invitation is not pending");
         }
-        invite.setStatus(InviteStatus.CANCELED);
+        invite.setStatus(InviteStatus.CANCELLED);
         workspaceInviteRepository.save(invite);
     }
 
@@ -196,6 +204,8 @@ public class WorkspaceMembershipService {
         workspaceMemberRepository.save(targetMember);
 
         UserDTO userDTO = userMapper.toDTO(targetMember.getUser());
+        notificationService.sendToUser(memberId, "/queue/workspace", "Your role in the workspace has been changed to " + newRole);
+        notificationService.sendToTopic("/topic/workspace/" + workspaceId, "User " + targetMember.getUser().getUsername() + "'s role has been changed to " + newRole);
         return new WorkspaceMemberDTO(userDTO, targetMember.getRole(), targetMember.getCreatedAt());
     }
 
@@ -218,6 +228,8 @@ public class WorkspaceMembershipService {
         workspaceMemberRepository.save(newOwner);
 
         UserDTO userDTO = userMapper.toDTO(newOwner.getUser());
+        notificationService.sendToUser(newOwnerId, "/queue/workspace", "You are now the owner of the workspace");
+        notificationService.sendToTopic("/topic/workspace/" + workspaceId, "Ownership of the workspace has been transferred to " + newOwner.getUser().getUsername());
         return new WorkspaceMemberDTO(userDTO, newOwner.getRole(), newOwner.getCreatedAt());
     }
 

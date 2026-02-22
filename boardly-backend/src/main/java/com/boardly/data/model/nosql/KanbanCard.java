@@ -26,7 +26,7 @@ import java.util.*;
 })
 public class KanbanCard {
     @Id
-    private UUID id;
+    private UUID Id;
 
     @Indexed
     private UUID boardId;

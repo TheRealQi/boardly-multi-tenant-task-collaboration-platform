@@ -4,6 +4,7 @@ import com.boardly.commmon.dto.authentication.*;
 import com.boardly.commmon.enums.TokenType;
 import com.boardly.data.model.sql.authentication.SecureToken;
 import com.boardly.data.model.sql.authentication.User;
+import com.boardly.data.model.sql.authentication.UserDevice;
 import com.boardly.data.repository.SecureTokenRepository;
 import com.boardly.data.repository.UserDeviceRepository;
 import com.boardly.data.repository.UserRepository;
@@ -87,19 +88,33 @@ public class AuthenticationService {
         UUID userId = userDetails.getUserId();
         User user = userDetails.getUser();
 
-        long expiresAt = jwtFilterService.getAccessTokenExpirationFromNow();
-        String accessToken = jwtFilterService.generateToken(userId, expiresAt);
+        String accessToken = jwtFilterService.generateToken(userId);
         String refreshToken = jwtFilterService.generateRefreshToken(userId);
-
+        long expiresAt = jwtFilterService.getAccessTokenExpirationFromNow();
 
         userDeviceService.captureUserDeviceInfo(user, refreshToken, servletRequest);
 
         return new LoginResponseDTO(userId, accessToken, refreshToken, expiresAt);
     }
 
-//    public void logout(AppUserDetails appUserDetails, HttpServletRequest servletRequest) {
-//
-//    }
+    @Transactional
+    public LoginResponseDTO refreshToken(RefreshTokenRequestDTO request) {
+        UserDevice userDevice = userDeviceService.findAndVerifyRefreshToken(request.getRefreshToken());
+        User user = userDevice.getUser();
+
+        String newAccessToken = jwtFilterService.generateToken(user.getId());
+        String newRefreshToken = jwtFilterService.generateRefreshToken(user.getId());
+        long expiresAt = jwtFilterService.getAccessTokenExpirationFromNow();
+
+        userDeviceService.rotateRefreshToken(userDevice, newRefreshToken);
+
+        return new LoginResponseDTO(user.getId(), newAccessToken, newRefreshToken, expiresAt);
+    }
+
+    @Transactional
+    public void logout(RefreshTokenRequestDTO request) {
+        userDeviceService.deleteByRefreshToken(request.getRefreshToken());
+    }
 
     @Transactional
     public void sendEmailVerificationEmail(User user) {

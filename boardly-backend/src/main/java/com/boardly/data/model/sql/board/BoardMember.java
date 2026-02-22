@@ -18,12 +18,12 @@ import lombok.Setter;
 public class BoardMember extends BaseEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id")
+    @JoinColumn(name = "board_Id")
     private Board board;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_Id")
     private User user;
 
     @NotNull

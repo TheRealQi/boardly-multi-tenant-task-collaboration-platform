@@ -67,7 +67,7 @@ public class WorkspaceMembershipController {
     @PutMapping("/{workspaceId}/invite/{inviteId}/cancel")
     @PreAuthorize("@authorizationSecurityService.canInviteWorkspaceMembers(#workspaceId)")
     public ResponseEntity<ApiSuccessResponseDTO<Void>> cancelWorkspaceInvite(@PathVariable UUID workspaceId, @PathVariable UUID inviteId) {
-        workspaceMembershipService.cancelBoardInvitation(inviteId);
+        workspaceMembershipService.cancelWorkspaceInvitation(inviteId);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Workspace invite cancelled successfully", null));
     }
 

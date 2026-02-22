@@ -29,8 +29,9 @@ public class BoardService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMapper workspaceMapper;
     private final KanbanBoardService kanbanBoardService;
+    private final NotificationService notificationService;
 
-    public BoardService(BoardRepository boardRepository, BoardMemberRepository boardMemberRepository, WorkspaceMemberRepository workspaceMemberRepository, BoardMapper boardMapper, WorkspaceRepository workspaceRepository, WorkspaceMapper workspaceMapper, KanbanBoardService kanbanBoardService) {
+    public BoardService(BoardRepository boardRepository, BoardMemberRepository boardMemberRepository, WorkspaceMemberRepository workspaceMemberRepository, BoardMapper boardMapper, WorkspaceRepository workspaceRepository, WorkspaceMapper workspaceMapper, KanbanBoardService kanbanBoardService, NotificationService notificationService) {
         this.boardRepository = boardRepository;
         this.boardMemberRepository = boardMemberRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
@@ -38,6 +39,7 @@ public class BoardService {
         this.workspaceRepository = workspaceRepository;
         this.workspaceMapper = workspaceMapper;
         this.kanbanBoardService = kanbanBoardService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -68,6 +70,7 @@ public class BoardService {
                 .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
         boardRepository.delete(board);
         kanbanBoardService.deleteBoard(boardId);
+        notificationService.sendToTopic("/topic/board/" + boardId, "Board deleted");
     }
 
     public BoardDTO getBoard(UUID boardId, AppUserDetails appUserDetails) {
@@ -75,7 +78,7 @@ public class BoardService {
                 .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
 
         BoardRole boardRole = boardMemberRepository.findRoleByBoardIdAndUserId(boardId, appUserDetails.getUserId())
-                .orElse(BoardRole.VIWER);
+                .orElse(BoardRole.VIEWER);
 
         WorkspaceDTO workspaceDTO = workspaceRepository.findWorkspaceDTOByWorkspaceAndUser(board.getWorkspace(), appUserDetails.getUser()).orElseThrow(() -> new ResourceNotFoundException("Workspace doesnt exist or user is not a member of the workspace"));
 
@@ -96,6 +99,7 @@ public class BoardService {
         board.setTitle(boardEditRequestDTO.getTitle());
         board.setDescription(boardEditRequestDTO.getDescription());
         boardRepository.save(board);
+        notificationService.sendToTopic("/topic/board/" + boardId, boardEditRequestDTO);
     }
 
     public void changeBoardVisibility(UUID boardId, BoardChangeVisibilityRequestDTO boardChangeVisibilityRequestDTO, AppUserDetails appUserDetails) {
@@ -103,6 +107,7 @@ public class BoardService {
                 .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
         board.setBoardVisibility(boardChangeVisibilityRequestDTO.getBoardVisibility());
         boardRepository.save(board);
+        notificationService.sendToTopic("/topic/board/" + boardId, boardChangeVisibilityRequestDTO);
     }
 
 
