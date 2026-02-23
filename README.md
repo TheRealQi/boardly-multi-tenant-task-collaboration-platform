@@ -43,10 +43,6 @@ The project focuses on the backend part of the platform ensuring clean architect
 - **Frontend Application**
   - A frontend application is planned for future development.
 
-- **Kanban Board Core**
-  - Lists, cards, labels, assignments, and ordering
-  - Optimized for frequent updates and collaboration-heavy usage
-
 - **Caching Layer (Redis)**
   - Integration with Redis for improved performance and caching.
 
