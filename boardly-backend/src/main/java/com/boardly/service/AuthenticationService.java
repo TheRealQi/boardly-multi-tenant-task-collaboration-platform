@@ -90,36 +90,11 @@ public class AuthenticationService {
         UUID userId = userDetails.getUserId();
 
         String accessToken = jwtFilterService.generateToken(userId);
-        String refreshToken = jwtFilterService.generateRefreshToken(userId);
         long expiresAt = jwtFilterService.getAccessTokenExpirationFromNow();
 
         logger.info("User logged in successfully: {}", userDetails.getUsername());
 
-        return new LoginResponseDTO(userId, accessToken, refreshToken, expiresAt);
-    }
-
-    @Transactional
-    public LoginResponseDTO refreshToken(RefreshTokenRequestDTO request) {
-        // TODO: Implement proper refresh token validation
-        logger.info("Refreshing token");
-        String refreshToken = request.getRefreshToken();
-        UUID userId = jwtFilterService.getUserIdFromToken(refreshToken);
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        String newAccessToken = jwtFilterService.generateToken(user.getId());
-        String newRefreshToken = jwtFilterService.generateRefreshToken(user.getId());
-        long expiresAt = jwtFilterService.getAccessTokenExpirationFromNow();
-
-        logger.info("Token refreshed successfully for user: {}", user.getUsername());
-
-        return new LoginResponseDTO(user.getId(), newAccessToken, newRefreshToken, expiresAt);
-    }
-
-    @Transactional
-    public void logout(RefreshTokenRequestDTO request) {
-        logger.info("Logging out user");
-        // TODO: Implement token blacklisting
-        logger.info("User logged out successfully");
+        return new LoginResponseDTO(userId, accessToken, expiresAt);
     }
 
     @Transactional

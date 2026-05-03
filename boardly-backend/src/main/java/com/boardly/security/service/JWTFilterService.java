@@ -47,12 +47,6 @@ public class JWTFilterService {
                 .compact();
     }
 
-    public String generateRefreshToken(UUID userId) {
-        byte[] token = new byte[32]; // 32 bytes = 256 bits
-        secureRandom.nextBytes(token);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(token);
-    }
-
     public long getAccessTokenExpirationFromNow() {
         return Instant.now().plusMillis(accessTokenExpirationTime).getEpochSecond();
     }
