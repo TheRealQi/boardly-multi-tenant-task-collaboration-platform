@@ -19,7 +19,7 @@ import java.util.UUID;
 @Document(collection = "boards")
 public class KanbanBoard {
     @Id
-    private String Id;
+    private UUID Id;
 
     @Indexed
     private UUID boardId;

@@ -1,5 +1,7 @@
 package com.boardly.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,6 +16,8 @@ import jakarta.mail.internet.MimeMessage;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -37,9 +41,10 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject("Boardly - Email Verification");
             helper.setFrom(fromEmail);
-            System.out.println("Email sent to " + to + " with link: " + link);
+            mailSender.send(mimeMessage);
+            logger.info("Email sent to {} with link: {}", to, link);
         } catch (MessagingException e) {
-            System.err.println("Failed to send email: " + e.getMessage());
+            logger.error("Failed to send email: {}", e.getMessage());
         }
     }
 
@@ -54,9 +59,10 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject("Boardly - Password Reset");
             helper.setFrom(fromEmail);
-            System.out.println("Email sent to " + to + " with link: " + link);
+            mailSender.send(mimeMessage);
+            logger.info("Email sent to {} with link: {}", to, link);
         } catch (MessagingException e) {
-            System.err.println("Failed to send email: " + e.getMessage());
+            logger.error("Failed to send email: {}", e.getMessage());
         }
     }
 }

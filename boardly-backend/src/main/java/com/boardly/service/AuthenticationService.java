@@ -4,9 +4,7 @@ import com.boardly.common.dto.authentication.*;
 import com.boardly.common.enums.TokenType;
 import com.boardly.data.model.sql.authentication.SecureToken;
 import com.boardly.data.model.sql.authentication.User;
-import com.boardly.data.model.sql.authentication.UserDevice;
 import com.boardly.data.repository.SecureTokenRepository;
-import com.boardly.data.repository.UserDeviceRepository;
 import com.boardly.data.repository.UserRepository;
 import com.boardly.exception.FieldsValidationException;
 import com.boardly.exception.ResourceNotFoundException;
@@ -31,18 +29,16 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JWTFilterService jwtFilterService;
-    private final UserDeviceService userDeviceService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final SecureTokenRepository secureTokenRepository;
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
     @Autowired
-    public AuthenticationService(UserRepository userRepository, UserDeviceRepository userDeviceRepository, AuthenticationManager authenticationManager, JWTFilterService jwtFilterService, UserDeviceService userDeviceService, PasswordEncoder passwordEncoder, EmailService emailService, SecureTokenRepository secureTokenRepository) {
+    public AuthenticationService(UserRepository userRepository, AuthenticationManager authenticationManager, JWTFilterService jwtFilterService, PasswordEncoder passwordEncoder, EmailService emailService, SecureTokenRepository secureTokenRepository) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtFilterService = jwtFilterService;
-        this.userDeviceService = userDeviceService;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.secureTokenRepository = secureTokenRepository;
@@ -92,29 +88,28 @@ public class AuthenticationService {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(usernameOrEmail, password));
         AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
         UUID userId = userDetails.getUserId();
-        User user = userDetails.getUser();
 
         String accessToken = jwtFilterService.generateToken(userId);
         String refreshToken = jwtFilterService.generateRefreshToken(userId);
         long expiresAt = jwtFilterService.getAccessTokenExpirationFromNow();
 
-        userDeviceService.captureUserDeviceInfo(user, refreshToken, servletRequest);
-        logger.info("User logged in successfully: {}", user.getUsername());
+        logger.info("User logged in successfully: {}", userDetails.getUsername());
 
         return new LoginResponseDTO(userId, accessToken, refreshToken, expiresAt);
     }
 
     @Transactional
     public LoginResponseDTO refreshToken(RefreshTokenRequestDTO request) {
+        // TODO: Implement proper refresh token validation
         logger.info("Refreshing token");
-        UserDevice userDevice = userDeviceService.findAndVerifyRefreshToken(request.getRefreshToken());
-        User user = userDevice.getUser();
+        String refreshToken = request.getRefreshToken();
+        UUID userId = jwtFilterService.getUserIdFromToken(refreshToken);
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String newAccessToken = jwtFilterService.generateToken(user.getId());
         String newRefreshToken = jwtFilterService.generateRefreshToken(user.getId());
         long expiresAt = jwtFilterService.getAccessTokenExpirationFromNow();
 
-        userDeviceService.rotateRefreshToken(userDevice, newRefreshToken);
         logger.info("Token refreshed successfully for user: {}", user.getUsername());
 
         return new LoginResponseDTO(user.getId(), newAccessToken, newRefreshToken, expiresAt);
@@ -123,7 +118,7 @@ public class AuthenticationService {
     @Transactional
     public void logout(RefreshTokenRequestDTO request) {
         logger.info("Logging out user");
-        userDeviceService.deleteByRefreshToken(request.getRefreshToken());
+        // TODO: Implement token blacklisting
         logger.info("User logged out successfully");
     }
 
@@ -142,7 +137,6 @@ public class AuthenticationService {
         secureTokenRepository.deleteAllByUserAndTokenType(user, TokenType.EMAIL_VERIFICATION);
         secureTokenRepository.save(secureToken);
         emailService.sendEmailVerificationEmail(user.getEmail(), token);
-        logger.info("Sent email verification to {}", user.getEmail());
     }
 
     @Transactional
@@ -183,7 +177,6 @@ public class AuthenticationService {
             secureTokenRepository.save(secureToken);
 
             emailService.sendPasswordResetEmail(user.getEmail(), token);
-            logger.info("Sent password reset email to {}", user.getEmail());
         });
     }
 

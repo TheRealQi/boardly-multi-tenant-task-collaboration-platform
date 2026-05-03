@@ -42,10 +42,6 @@ public class User extends BaseEntity {
     @Column
     private Instant lastLogin = null;
 
-    @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<UserDevice> userDevices;
-
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WorkspaceMember> workspaceMembers = new HashSet<>();
 

@@ -12,7 +12,4 @@ import lombok.Setter;
 public class KanbanListCreationRequestDTO {
     @NotBlank(message = "Title is required")
     private String title;
-
-    @Positive(message = "Position must be a positive number")
-    private double position;
 }

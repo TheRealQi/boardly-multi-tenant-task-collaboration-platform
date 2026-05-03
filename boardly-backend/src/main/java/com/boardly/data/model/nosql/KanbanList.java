@@ -8,7 +8,7 @@ import java.util.UUID;
 @Setter
 @Getter
 public class KanbanList {
-    private UUID Id;
+    private UUID id;
     private String title = "";
     private double position;
 }

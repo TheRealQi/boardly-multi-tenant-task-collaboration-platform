@@ -18,9 +18,6 @@ public class KanbanCardCreationRequestDTO {
     @NotBlank(message = "Title cannot be blank")
     private String title;
 
-    @Positive(message = "Position must be a positive integer")
-    private double position;
-
     @NotNull
     private UUID listId;
 }

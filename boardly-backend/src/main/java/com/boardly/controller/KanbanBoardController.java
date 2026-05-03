@@ -21,345 +21,307 @@ import java.util.UUID;
 @RequestMapping("${api.base-path}/${api.version}/kanban-board")
 @Tag(name = "Kanban Board")
 public class KanbanBoardController {
+
     private final KanbanBoardService kanbanBoardService;
 
     public KanbanBoardController(KanbanBoardService kanbanBoardService) {
         this.kanbanBoardService = kanbanBoardService;
     }
 
-    @Operation(
-            description = "Get kanban board endpoint",
-            summary = "Get a kanban board by ID",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    // -------------------------------------------------------------------------
+    // Board
+    // -------------------------------------------------------------------------
+
+    @Operation(summary = "Get a kanban board by ID", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
     @GetMapping("/{boardId}")
     @PreAuthorize("@authorizationSecurityService.canViewBoard(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<KanbanBoardDTO>> getKanbanBoard(@PathVariable("boardId") UUID boardId) {
-        KanbanBoardDTO kanbanBoardDTO = kanbanBoardService.getBoard(boardId);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban Board retrieved successfully", kanbanBoardDTO));
+    public ResponseEntity<ApiSuccessResponseDTO<KanbanBoardDTO>> getKanbanBoard(@PathVariable UUID boardId) {
+        KanbanBoardDTO dto = kanbanBoardService.getBoard(boardId);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban board retrieved successfully", dto));
     }
 
-    @Operation(
-            description = "Create kanban list endpoint",
-            summary = "Create a kanban list",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "201"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    // -------------------------------------------------------------------------
+    // Lists
+    // -------------------------------------------------------------------------
+
+    @Operation(summary = "Create a kanban list", responses = {
+            @ApiResponse(description = "Created",      responseCode = "201"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403")
+    })
     @PostMapping("/{boardId}/list")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<KanbanListDTO>> createKanbanList(@PathVariable("boardId") UUID boardId, @Valid @RequestBody KanbanListCreationRequestDTO kanbanListCreationRequestDTO) {
-        KanbanListDTO kanbanListDTO = kanbanBoardService.createList(boardId, kanbanListCreationRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Kanban List created successfully", kanbanListDTO));
+    public ResponseEntity<ApiSuccessResponseDTO<KanbanListDTO>> createKanbanList(
+            @PathVariable UUID boardId,
+            @Valid @RequestBody KanbanListCreationRequestDTO request) {
+        KanbanListDTO dto = kanbanBoardService.createList(boardId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Kanban list created successfully", dto));
     }
 
-    @Operation(
-            description = "Update kanban list endpoint",
-            summary = "Update a kanban list",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
-    @PutMapping("/{boardId}/list/{listId}")
+    @Operation(summary = "Update a kanban list", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
+    @PatchMapping("/{boardId}/list/{listId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<KanbanListDTO>> updateKanbanList(@PathVariable("boardId") UUID boardId, @PathVariable("listId") UUID listId, @Valid @RequestBody KanbanListUpdateRequestDTO kanbanListUpdateRequestDTO) {
-        KanbanListDTO kanbanListDTO = kanbanBoardService.updateList(boardId, listId, kanbanListUpdateRequestDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban List updated successfully", kanbanListDTO));
+    public ResponseEntity<ApiSuccessResponseDTO<KanbanListDTO>> updateKanbanList(
+            @PathVariable UUID boardId,
+            @PathVariable UUID listId,
+            @Valid @RequestBody KanbanListUpdateRequestDTO request) {
+        KanbanListDTO dto = kanbanBoardService.updateList(boardId, listId, request);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban list updated successfully", dto));
     }
 
-    @Operation(
-            description = "Delete kanban list endpoint",
-            summary = "Delete a kanban list",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    @Operation(summary = "Delete a kanban list", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
     @DeleteMapping("/{boardId}/list/{listId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteKanbanList(@PathVariable("boardId") UUID boardId, @PathVariable("listId") UUID listId) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteKanbanList(
+            @PathVariable UUID boardId,
+            @PathVariable UUID listId) {
         kanbanBoardService.deleteList(boardId, listId);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban List deleted successfully"));
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban list deleted successfully"));
     }
 
-    @Operation(
-            description = "Create kanban card endpoint",
-            summary = "Create a kanban card",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "201"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    // -------------------------------------------------------------------------
+    // Cards
+    // -------------------------------------------------------------------------
+
+    @Operation(summary = "Create a kanban card", responses = {
+            @ApiResponse(description = "Created",      responseCode = "201"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403")
+    })
     @PostMapping("/{boardId}/card")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<KanbanCardDTO>> createKanbanCard(@PathVariable("boardId") UUID boardId, @Valid @RequestBody KanbanCardCreationRequestDTO kanbanCardCreationRequestDTO) {
-        KanbanCardDTO kanbanCardDTO = kanbanBoardService.createCard(boardId, kanbanCardCreationRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Kanban Card created successfully", kanbanCardDTO));
+    public ResponseEntity<ApiSuccessResponseDTO<KanbanCardDTO>> createKanbanCard(
+            @PathVariable UUID boardId,
+            @Valid @RequestBody KanbanCardCreationRequestDTO request) {
+        KanbanCardDTO dto = kanbanBoardService.createCard(boardId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Kanban card created successfully", dto));
     }
 
-    @Operation(
-            description = "Get kanban card endpoint",
-            summary = "Get a kanban card by ID",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    @Operation(summary = "Get a kanban card by ID", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
     @GetMapping("/{boardId}/card/{cardId}")
     @PreAuthorize("@authorizationSecurityService.canViewBoard(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<KanbanCardDetailsDTO>> getKanbanCard(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId) {
-        KanbanCardDetailsDTO kanbanCardDetailsDTO = kanbanBoardService.getCard(boardId, cardId);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban Card retrieved successfully", kanbanCardDetailsDTO));
+    public ResponseEntity<ApiSuccessResponseDTO<KanbanCardDetailsDTO>> getKanbanCard(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId) {
+        KanbanCardDetailsDTO dto = kanbanBoardService.getCard(boardId, cardId);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban card retrieved successfully", dto));
     }
 
-    @Operation(
-            description = "Update kanban card endpoint",
-            summary = "Update a kanban card",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
-    @PutMapping("/{boardId}/card/{cardId}")
+    @Operation(summary = "Delete a kanban card", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
+    @DeleteMapping("/{boardId}/card/{cardId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateKanbanCard(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @Valid @RequestBody KanbanCardUpdateRequestDTO kanbanCardUpdateRequestDTO) {
-        kanbanBoardService.updateCard(boardId, cardId, kanbanCardUpdateRequestDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban Card updated successfully"));
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteKanbanCard(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId) {
+        kanbanBoardService.deleteCard(boardId, cardId);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban card deleted successfully"));
     }
 
-    @Operation(
-            description = "Add checklist endpoint",
-            summary = "Add a checklist to a card",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "201"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    @Operation(summary = "Update a kanban card", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
+    @PatchMapping("/{boardId}/card/{cardId}")
+    @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateKanbanCard(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @Valid @RequestBody KanbanCardUpdateRequestDTO request) {
+        kanbanBoardService.updateCard(boardId, cardId, request);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Kanban card updated successfully"));
+    }
+
+    // -------------------------------------------------------------------------
+    // Checklists
+    // -------------------------------------------------------------------------
+
+    @Operation(summary = "Add a checklist to a card", responses = {
+            @ApiResponse(description = "Created",      responseCode = "201"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403")
+    })
     @PostMapping("/{boardId}/card/{cardId}/checklists")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<ChecklistDTO>> addChecklist(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @Valid @RequestBody ChecklistDTO checklistDTO) {
-        ChecklistDTO checklist = kanbanBoardService.addChecklist(boardId, cardId, checklistDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Checklist created successfully", checklist));
+    public ResponseEntity<ApiSuccessResponseDTO<ChecklistDTO>> addChecklist(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @Valid @RequestBody ChecklistDTO request) {
+        ChecklistDTO dto = kanbanBoardService.addChecklist(boardId, cardId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Checklist created successfully", dto));
     }
 
-    @Operation(
-            description = "Delete checklist endpoint",
-            summary = "Delete a checklist from a card",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    @Operation(summary = "Update a checklist on a card", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
+    @PatchMapping("/{boardId}/card/{cardId}/checklists/{checklistId}")
+    @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateChecklist(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @PathVariable UUID checklistId,
+            @Valid @RequestBody ChecklistUpdateRequestDTO request) {
+        kanbanBoardService.updateChecklist(boardId, cardId, checklistId, request);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist updated successfully"));
+    }
+
+    @Operation(summary = "Delete a checklist from a card", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
     @DeleteMapping("/{boardId}/card/{cardId}/checklists/{checklistId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteChecklist(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteChecklist(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @PathVariable UUID checklistId) {
         kanbanBoardService.deleteChecklist(boardId, cardId, checklistId);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist deleted successfully"));
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist deleted successfully"));
     }
 
-    @Operation(
-            description = "Update checklist endpoint",
-            summary = "Update a checklist on a card",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
-    @PutMapping("/{boardId}/card/{cardId}/checklists/{checklistId}")
-    @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateChecklist(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId, @Valid @RequestBody ChecklistUpdateRequestDTO checklistUpdateRequestDTO) {
-        kanbanBoardService.updateChecklist(boardId, cardId, checklistId, checklistUpdateRequestDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist updated successfully"));
-    }
+    // -------------------------------------------------------------------------
+    // Checklist items
+    // -------------------------------------------------------------------------
 
-    @Operation(
-            description = "Add checklist item endpoint",
-            summary = "Add an item to a checklist",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "201"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    @Operation(summary = "Add an item to a checklist", responses = {
+            @ApiResponse(description = "Created",      responseCode = "201"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403")
+    })
     @PostMapping("/{boardId}/card/{cardId}/checklists/{checklistId}/items")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<ChecklistItemDTO>> addChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId, @Valid @RequestBody ChecklistItemCreationRequestDTO checklistItemCreationRequestDTO) {
-        ChecklistItemDTO checklistItemDTO = kanbanBoardService.addChecklistItem(boardId, cardId, checklistId, checklistItemCreationRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Checklist item created successfully", checklistItemDTO));
+    public ResponseEntity<ApiSuccessResponseDTO<ChecklistItemDTO>> addChecklistItem(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @PathVariable UUID checklistId,
+            @Valid @RequestBody ChecklistItemCreationRequestDTO request) {
+        ChecklistItemDTO dto = kanbanBoardService.addChecklistItem(boardId, cardId, checklistId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Checklist item created successfully", dto));
     }
 
-    @Operation(
-            description = "Delete checklist item endpoint",
-            summary = "Delete an item from a checklist",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    @Operation(summary = "Update an item in a checklist", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
+    @PatchMapping("/{boardId}/card/{cardId}/checklists/{checklistId}/items/{itemId}")
+    @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateChecklistItem(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @PathVariable UUID checklistId,
+            @PathVariable UUID itemId,
+            @Valid @RequestBody ChecklistItemUpdateRequestDTO request) {
+        kanbanBoardService.updateChecklistItem(boardId, cardId, checklistId, itemId, request);
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist item updated successfully"));
+    }
+
+    @Operation(summary = "Delete an item from a checklist", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
     @DeleteMapping("/{boardId}/card/{cardId}/checklists/{checklistId}/items/{itemId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId, @PathVariable("itemId") UUID itemId) {
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteChecklistItem(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @PathVariable UUID checklistId,
+            @PathVariable UUID itemId) {
         kanbanBoardService.deleteChecklistItem(boardId, cardId, checklistId, itemId);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist item deleted successfully"));
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist item deleted successfully"));
     }
 
-    @Operation(
-            description = "Update checklist item endpoint",
-            summary = "Update an item in a checklist",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
-    @PutMapping("/{boardId}/card/{cardId}/checklists/{checklistId}/items/{itemId}")
-    @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateChecklistItem(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("checklistId") UUID checklistId, @PathVariable("itemId") UUID itemId, @Valid @RequestBody ChecklistItemUpdateRequestDTO checklistItemUpdateRequestDTO) {
-        kanbanBoardService.updateChecklistItem(boardId, cardId, checklistId, itemId, checklistItemUpdateRequestDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Checklist item updated successfully"));
-    }
+    // -------------------------------------------------------------------------
+    // Comments
+    // -------------------------------------------------------------------------
 
-    @Operation(
-            description = "Add comment endpoint",
-            summary = "Add a comment to a card",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "201"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    @Operation(summary = "Add a comment to a card", responses = {
+            @ApiResponse(description = "Created",      responseCode = "201"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403")
+    })
     @PostMapping("/{boardId}/card/{cardId}/comments")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<CardCommentDTO>> addComment(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @Valid @RequestBody CommentCreationRequestDTO commentCreationRequestDTO, @AuthenticationPrincipal AppUserDetails userDetails) {
-        CardCommentDTO cardCommentDTO = kanbanBoardService.addComment(boardId, cardId, commentCreationRequestDTO, userDetails);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Comment created successfully", cardCommentDTO));
+    public ResponseEntity<ApiSuccessResponseDTO<CardCommentDTO>> addComment(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @Valid @RequestBody CommentCreationRequestDTO request,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        CardCommentDTO dto = kanbanBoardService.addComment(boardId, cardId, request, userDetails);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiSuccessResponseDTO<>(HttpStatus.CREATED.value(), Instant.now(), "Comment created successfully", dto));
     }
 
-    @Operation(
-            description = "Delete comment endpoint",
-            summary = "Delete a comment from a card",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
+    @Operation(summary = "Update a comment on a card", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
+    @PatchMapping("/{boardId}/card/{cardId}/comments/{commentId}")
+    @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateComment(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @PathVariable UUID commentId,
+            @Valid @RequestBody CommentUpdateRequestDTO request,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        kanbanBoardService.updateComment(boardId, cardId, commentId, request, userDetails.getUserId());
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Comment updated successfully"));
+    }
+
+    @Operation(summary = "Delete a comment from a card", responses = {
+            @ApiResponse(description = "Success",      responseCode = "200"),
+            @ApiResponse(description = "Unauthorized", responseCode = "401"),
+            @ApiResponse(description = "Forbidden",    responseCode = "403"),
+            @ApiResponse(description = "Not found",    responseCode = "404")
+    })
     @DeleteMapping("/{boardId}/card/{cardId}/comments/{commentId}")
     @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteComment(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("commentId") UUID commentId) {
-        kanbanBoardService.deleteComment(boardId, cardId, commentId);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Comment deleted successfully"));
-    }
-
-    @Operation(
-            description = "Update comment endpoint",
-            summary = "Update a comment on a card",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
-    @PutMapping("/{boardId}/card/{cardId}/comments/{commentId}")
-    @PreAuthorize("@authorizationSecurityService.canEditBoardContent(#boardId)")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> updateComment(@PathVariable("boardId") UUID boardId, @PathVariable("cardId") UUID cardId, @PathVariable("commentId") UUID commentId, @Valid @RequestBody CommentUpdateRequestDTO commentUpdateRequestDTO) {
-        kanbanBoardService.updateComment(boardId, cardId, commentId, commentUpdateRequestDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Comment updated successfully"));
+    public ResponseEntity<ApiSuccessResponseDTO<Void>> deleteComment(
+            @PathVariable UUID boardId,
+            @PathVariable UUID cardId,
+            @PathVariable UUID commentId,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        kanbanBoardService.deleteComment(boardId, cardId, commentId, userDetails.getUserId());
+        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Comment deleted successfully"));
     }
 }

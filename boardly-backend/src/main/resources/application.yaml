@@ -19,7 +19,6 @@ spring:
       uri: mongodb://boardly_user:boardly_pass@localhost:27017/boardly_kanban?authSource=admin
   mail:
     host: "smtp.example.com"
-    port: 587
     username: "your-email@example.com"
     password: "your-password"
     properties:
@@ -31,9 +30,9 @@ spring:
 
 logging:
   level:
-    root: DEBUG
-    org.springframework.web: DEBUG
-    com.boardly: DEBUG
+    root: INFO
+    org.springframework.web: INFO
+    com.boardly: INFO
 
 server:
   port: 8080

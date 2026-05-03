@@ -12,6 +12,5 @@ import java.util.UUID;
 public class LoginResponseDTO {
     private UUID userId;
     private String accessToken;
-    private String refreshToken;
     private Long expiresAt;
 }

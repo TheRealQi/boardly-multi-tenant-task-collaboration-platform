@@ -65,45 +65,6 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Login successful", loginResponseDTO));
     }
 
-    @Operation(
-            description = "Refresh token endpoint",
-            summary = "Refresh a user's token",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
-    @PostMapping("/refresh-token")
-    public ResponseEntity<ApiSuccessResponseDTO<LoginResponseDTO>> refreshToken(@RequestBody @Valid RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        LoginResponseDTO loginResponseDTO = authenticationService.refreshToken(refreshTokenRequestDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Tokens refreshed successfully", loginResponseDTO));
-    }
-
-    @Operation(
-            description = "Logout endpoint",
-            summary = "Logout a user",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
-    @PostMapping("/logout")
-    public ResponseEntity<ApiSuccessResponseDTO<Void>> logout(@RequestBody @Valid RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        authenticationService.logout(refreshTokenRequestDTO);
-        return ResponseEntity.ok(new ApiSuccessResponseDTO<>(HttpStatus.OK.value(), Instant.now(), "Logout successful"));
-    }
 
     @Operation(
             description = "Forgot password endpoint",

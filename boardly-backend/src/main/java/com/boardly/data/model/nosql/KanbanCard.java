@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.Instant;
 import java.util.*;
@@ -26,7 +27,7 @@ import java.util.*;
 })
 public class KanbanCard {
     @Id
-    private UUID Id;
+    private UUID id;
 
     @Indexed
     private UUID boardId;
@@ -43,7 +44,6 @@ public class KanbanCard {
     private Instant dueDate = null;
 
     private Set<UUID> assignedMembers = new HashSet<>();
-
     private Set<String> labels = new HashSet<>();
 
     private List<Checklist> checklists = new ArrayList<>();
